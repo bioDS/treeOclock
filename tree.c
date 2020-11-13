@@ -69,7 +69,7 @@ Tree_List read_trees_from_file(char* filename){
 
         long num_nodes = 2 * num_leaves - 1;
         int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
-        long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string -- this is quite a bad approximation and should be improved (?)        
+        long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string -- this is quite a bad approximation and should be improved (?)
         Tree_List tree_list;
         tree_list.num_trees = num_trees;
         tree_list.trees = malloc(num_trees * sizeof(Tree));
@@ -401,7 +401,7 @@ int rank_move(Tree * input_tree, long rank_in_list){
             }
             for (int i = 0; i < 2; i++){
                 // update parents of children of nodes that swap ranks
-                input_tree->tree[input_tree->tree[rank_in_list + 1].children[i]].parent = rank_in_list + 1; 
+                input_tree->tree[input_tree->tree[rank_in_list + 1].children[i]].parent = rank_in_list + 1;
                 input_tree->tree[input_tree->tree[rank_in_list].children[i]].parent = rank_in_list;
             }
             for (int i = 0; i < 2; i ++){
@@ -476,7 +476,7 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
                 bool did_nni = false;
                 for (int child_index = 0; child_index < 2; child_index++){ // find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
                     if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1){ // do nni if current interval is an edge
-                        // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move 
+                        // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move
                         bool found_child = false; //indicate if we found the correct child
                         int child_stays; // index of the child of current_tree.tree[current_mrca] that does not move up by an NNI move
                         // find the index of the child of the parent of the node we currently consider -- this will be the index child_stays that we want in the end
@@ -553,7 +553,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                 bool did_nni = false;
                 for (int child_index = 0; child_index < 2; child_index++){ // find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
                     if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1){ // do nni if current interval is an edge
-                        // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move 
+                        // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move
                         bool found_child = false; //indicate if we found the correct child
                         int child_stays; // index of the child of current_tree.tree[current_mrca] that does not move up by an NNI move
                         // find the index of the child of the parent of the node we currently consider -- this will be the index child_stays that we want in the end
@@ -603,7 +603,7 @@ Tree_List return_findpath(Tree_List tree_list){
     long num_leaves = tree_list.trees[0].num_leaves;
     Tree current_tree;
     current_tree.num_leaves = num_leaves;
-    current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree 
+    current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
     for (int i = 0; i < 2 * num_leaves - 1; i++){
         current_tree.tree[i] = tree_list.trees[0].tree[i];
     }
@@ -735,7 +735,7 @@ int main(){
     char filename[200]; // length of filename set to be 200 char max
     printf("What is the file containing trees?\n");
     scanf("%s", filename);
-    
+
     printf("Start reading trees from file\n");
     Tree_List tree_list = read_trees_from_file(filename);
     printf("End reading trees from file\n");
@@ -792,10 +792,10 @@ int main(){
     // free(fpath);
 
     // Free all variables
-    // for (int i = 0; i < max_dist + 1; i++){
-    //     free(path.moves[i]);
-    // }
-    // free(path.moves);
+    for (int i = 0; i < max_dist + 1; i++){
+        free(path.moves[i]);
+    }
+    free(path.moves);
 
     for (int i = 0; i < tree_list.num_trees; i++){
         free(tree_list.trees[i].tree);
