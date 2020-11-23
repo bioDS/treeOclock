@@ -1,2 +1,3 @@
 default:
-	gcc -g -o tree tree.c
+	gcc -g main.c -o main
+	
