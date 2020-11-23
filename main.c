@@ -46,7 +46,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
   int str_length = strlen(tree_string);
   char * tree_str = malloc((str_length + 1) * sizeof(char));
   strcpy(tree_str, tree_string);
-  long root_time;
+  long root_time = 0;
   // Remove white spaces from string buffer
   int l = 0;
   for(int k=0;tree_str[k]!=']';++k)
@@ -54,16 +54,11 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
     if(tree_str[k]!=' ') {
       tree_str[l++]=tree_str[k];
     }
-    if(tree_str[k] == ':') {
-      /* go through the whole string to fix the largest node height. */
-      root_time = atoi(&tree_str[k-1]);
-    }
   }
   tree_str[l] = ']';
   tree_str[++l] = '\0';
 
   int num_nodes = num_leaves*2 - 1;
-  int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
 
   Tree output_tree;
   output_tree.tree = malloc(num_nodes * sizeof(Node));
@@ -73,14 +68,11 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
     output_tree.tree[i].children[1] = -1;
   }
   output_tree.num_leaves = num_leaves;
-  output_tree.root_time = root_time;
 
   int *highest_ancestor = malloc(num_leaves * sizeof(int)); // highest_ancestor[i]: index of cluster containing leaf i that is highest below the currently considered cluster
   for(int i = 0; i < num_leaves; i++){
     highest_ancestor[i] = 1;
   }
-  int current_tree = 0; //This will stay 0 as we only read one tree
-
   // allocate memory for strings saving clusters
   char *cluster;
   /*remove rank*/
@@ -94,7 +86,8 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
     cluster_list += 1; // ignore first 1 characters [{ or ,{
       /*learn the rank of the current cluster, which is at the front of each cluster.*/
       int time = atoi(cluster_list);
-      cluster_list += 3;
+      root_time = root_time < time ? time : root_time;
+      cluster_list += (2 + get_num_digits(time));
       if(cluster_number < num_leaves){ //only consider clusters, not things that could potentially be in rest of tree string after the actual tree
         // Find leaves in clusters
         while((cluster = strsep(&cluster_list, ",")) != NULL){
@@ -132,6 +125,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
       rank++;
       /*How do I ensure that this rank actually has nodes?*/
     }
+    output_tree.root_time = root_time;
     free(cluster_list);
     free(tree_str);
     free(highest_ancestor);
@@ -155,7 +149,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
   Tree_List read_trees_from_file(char* filename){
     FILE *f;
     if ((f = fopen(filename, "r"))){
-      long num_leaves;
+      long num_leaves = 0;
       int num_trees;
       char * first_ints_buffer = malloc(20 * sizeof(char)); // max number of digits for number of leaves and number of trees in file is assumed to be 20
       // read in first two lines: number of leaves and number of trees
@@ -173,7 +167,6 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
       }
       free(first_ints_buffer);
 
-      long num_nodes = 2 * num_leaves;
       int num_digits_n = get_num_digits(num_leaves); // number of digits of the int num_leaves
       /*upper bound for the maximum length of a tree as string -- this is quite
         * a bad approximation and should be improved (?) Max number of digits
@@ -199,6 +192,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
       free(buffer);
       free(highest_ancestor);
 
+      // long num_nodes = 2 * num_leaves;
       // //check if read_trees_from_file reads trees correctly
       // for (int k = 0; k < num_trees; k++){
       //     for(long i = 0; i < num_nodes; i++){
@@ -314,8 +308,6 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
       if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
       } else{
-        long num_leaves = input_tree->num_leaves;
-        long num_nodes = 2 * num_leaves - 1;
         if(input_tree->tree[input_tree->tree[rank_in_list].parent].time != input_tree->tree[rank_in_list].time + 1){
           printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank_in_list, rank_in_list + 1);
           return 1;
@@ -339,8 +331,6 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
 
     // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
     int rank_move(Tree * input_tree, long rank_in_list){
-      long num_leaves = input_tree->num_leaves;
-      long num_nodes = 2 * num_leaves - 1;
       if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
         return 1;
@@ -486,7 +476,8 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
               bool did_nni = false;
               /*find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI */
               for (int child_index = 0; child_index < 2; child_index++){
-                if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1){ /*do nni if current interval is an edge
+                /*this part is jank*/
+                if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1 && current_tree.tree[current_tree.tree[current_mrca].children[child_index]].time + 1 == current_tree.tree[current_mrca].time){ /*do nni if current interval is an edge
                   check which of the children of current_tree.tree[current_mrca] should move up by the NNI move #4*/
                   bool found_child = false; //indicate if we found the correct child
                   int child_stays; // index of the child of current_tree.tree[current_mrca] that does not move up by an NNI move
@@ -514,7 +505,7 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
                   did_nni = true;
                 }
               }
-              if (did_nni == false){ /*#6*/
+              if (did_nni == false && current_tree.tree[current_mrca].time == current_tree.tree[current_mrca-1].time + 1){ /*#6*/
                 rank_move(current_tree_pointer, current_mrca - 1);
                 fprintf(stderr, "Performed rank move.\n");
                 path.moves[path_index][1] = 0;
@@ -829,6 +820,10 @@ Tree read_tree_from_string(int num_leaves, char* tree_string){
       /*printf("What is the file containing trees?\n");
       scanf("%s", filename);*/
       /*Read in tree-list file from arguments.*/
+      if(argc != 2) {
+        printf("Usage: main 'filename'\n");
+        exit(EXIT_FAILURE);
+      }
       strcpy(filename, argv[1]);
       printf("Start reading trees from file\n");
       Tree_List tree_list = read_trees_from_file(filename);
