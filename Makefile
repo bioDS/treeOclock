@@ -1,3 +1,2 @@
 default:
-	gcc -g main.c -o main
-	
+	gcc -g -Wall main.c -o main

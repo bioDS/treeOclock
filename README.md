@@ -1,6 +1,6 @@
 # README
 
-main.c reads a tree file, computes a shortest path with FINDPATH between the first two trees of that file, and returns all trees on this shortest path in "output/fp.rtree". Please ensure the tree with the largest root time is the second tree in the file.
+main.c reads a tree file, computes a shortest path with FINDPATH between the first two trees of that file, and returns all trees on this shortest path in "output/fp.rtree".
 
 ## Ranked tree file format:
 1st line: number of leaves  
