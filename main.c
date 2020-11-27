@@ -582,8 +582,6 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
     long current_node = num_leaves;
 
     for(long i = num_leaves; i < num_leaves*2 -1; i++) {
-      printf("Time of current_tree[%ld]: %ld\n", i, current_tree.tree[i].time);
-      printf("Time of dest_tree[%ld]: %ld\n", i, dest_tree->tree[i].time);
     }
 
     for (long i = num_leaves; i < dest_tree->root_time + num_leaves; i++){
