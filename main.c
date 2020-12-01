@@ -427,6 +427,7 @@ int rank_move(Tree * input_tree, long rank_in_list){
   } else{
     if (input_tree->tree[rank_in_list].parent == rank_in_list + 1){
       fprintf(stderr, "Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank_in_list, rank_in_list + 1);
+      return 1;
     } else{
       /*update parents of nodes that swap ranks*/
       /*printf("swapping ranks (times) of %ld and %ld\n", rank_in_list, rank_in_list+1);*/
@@ -483,6 +484,9 @@ int increasing_length_move(Tree * input_tree, long rank) {
   }
   /*printf("increasing %ld to time %ld\n", rank, input_tree->tree[rank].time+1);*/
   input_tree->tree[rank].time++;
+  if(rank == input_tree->num_leaves*2-2) {
+    input_tree->root_time++;
+  }
   return 0;
 }
 
@@ -502,6 +506,10 @@ int decreasing_length_move(Tree * input_tree, long rank) {
   }
   /*printf("decreasing %ld to time %ld\n", rank, input_tree->tree[rank].time-1);*/
   input_tree->tree[rank].time--;
+  if(rank == input_tree->num_leaves*2-2) {
+    input_tree->root_time--;
+  }
+
   return 0;
 }
 
@@ -1024,7 +1032,7 @@ int main(int argc, char const *argv[]) {
   distance = atol(my_cluster_list[0]);
   /*Print the distance between the two trees.*/
   printf("FP(T,R) = %ld\n", distance);
-  
+
   /*Print the path between the two trees.*/
   for(int i = 0; i < distance + 1; i++) {
     printf("%d: %s\n", i, my_cluster_list[i+1]);
