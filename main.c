@@ -406,7 +406,7 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
           child_moved_up = input_tree->tree[rank_in_list].children[child_moves_up];
           input_tree->tree[rank_in_list].children[child_moves_up] = input_tree->tree[rank_in_list+1].children[i];
           input_tree->tree[rank_in_list+1].children[i] = child_moved_up;
-          /*printf("swapping [%ld, %ld] moved up: %d\n", rank_in_list, rank_in_list+1, child_moved_up+1);*/
+          printf("swapping [%ld, %ld] moved up: %d\n", rank_in_list, rank_in_list+1, child_moved_up+1);
         }
       }
     }
@@ -430,7 +430,7 @@ int rank_move(Tree * input_tree, long rank_in_list){
       return 1;
     } else{
       /*update parents of nodes that swap ranks*/
-      /*printf("swapping ranks (times) of %ld and %ld\n", rank_in_list, rank_in_list+1);*/
+      printf("swapping ranks (times) of %ld and %ld\n", rank_in_list, rank_in_list+1);
       long upper_parent;
       upper_parent = input_tree->tree[rank_in_list + 1].parent;
       input_tree->tree[rank_in_list + 1].parent = input_tree->tree[rank_in_list].parent;
@@ -481,8 +481,11 @@ int increasing_length_move(Tree * input_tree, long rank) {
   } else if(input_tree->tree[rank].parent != -1 && input_tree->tree[input_tree->tree[rank].parent].time == input_tree->tree[rank].time + 1) {
     fprintf(stderr, "Error. No length move possible. length between parent is not > 1.\n");
     return 1;
+  }else if(input_tree->tree[rank].parent != -1 && input_tree->tree[rank].time + 1 == input_tree->tree[rank+1].time) {
+    fprintf(stderr, "Error. No length move possible. length between next node is not > 1.\n");
+    return 1;
   }
-  /*printf("increasing %ld to time %ld\n", rank, input_tree->tree[rank].time+1);*/
+  printf("increasing %ld to time %ld\n", rank, input_tree->tree[rank].time+1);
   input_tree->tree[rank].time++;
   if(rank == input_tree->num_leaves*2-2) {
     input_tree->root_time++;
@@ -503,8 +506,14 @@ int decreasing_length_move(Tree * input_tree, long rank) {
   } else if(input_tree->tree[input_tree->tree[rank].children[0]].time == input_tree->tree[rank].time - 1 || input_tree->tree[input_tree->tree[rank].children[1]].time == input_tree->tree[rank].time - 1) {
     fprintf(stderr, "Error. No length move possible. length between a child is not > 1.\n");
     return 1;
+  } else if(input_tree->tree[rank].time == 1) {
+    fprintf(stderr, "Error. Length move not possible. Node height already 1.\n");
+    return 1;
+  } else if(input_tree->tree[rank].time - 1 == input_tree->tree[rank-1].time) {
+    fprintf(stderr, "Error. No length move possible. length between next node is not > 1.\n");
+    return 1;
   }
-  /*printf("decreasing %ld to time %ld\n", rank, input_tree->tree[rank].time-1);*/
+  printf("decreasing %ld to time %ld\n", rank, input_tree->tree[rank].time-1);
   input_tree->tree[rank].time--;
   if(rank == input_tree->num_leaves*2-2) {
     input_tree->root_time--;
@@ -589,16 +598,13 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
     current_tree_pointer = &current_tree;
     long current_node = num_leaves;
 
-    for(long i = num_leaves; i < num_leaves*2 -1; i++) {
-    }
-
     for (long i = num_leaves; i < dest_tree->root_time + num_leaves; i++){
 
       if(dest_tree->tree[current_node].time == i - num_leaves + 1) {
         current_mrca = mrca(current_tree_pointer, dest_tree->tree[current_node].children[0], dest_tree->tree[current_node].children[1]);
         current_mrca_time = current_tree.tree[current_mrca].time;
         /*printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);*/
-        /*printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);*/
+        printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);
         while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){
           bool did_nni = false;
           bool did_rnkmv = false;
@@ -641,7 +647,7 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
             current_mrca--;
             did_rnkmv = true;
           }
-          if (did_nni == false && did_rnkmv == false && current_tree.tree[current_mrca].time > dest_tree->tree[current_mrca].time) {
+          if (did_nni == false && did_rnkmv == false && current_tree.tree[current_mrca].time > dest_tree->tree[current_node].time) {
             /*do decreasing length moves from mrca*/
             long l = current_mrca;
             for(long p = l; p > i; p--) {
@@ -650,7 +656,8 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
               }
             }  /*we decrease the node that was larger than expected.*/
             long j = l;
-            while(j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) {
+            /* && current_tree.tree[j].time > dest_tree->tree[j].time*/
+            while((j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) && j > current_mrca || (current_tree.tree[j].time > dest_tree->tree[current_node].time && j >= current_mrca)) {
               decreasing_length_move(current_tree_pointer, j);
               path.moves[path_index][1] = 4;
               path.moves[path_index][0] = j;
@@ -729,7 +736,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
   } else{
     remove("./output/findpath.rtree");
     /*This ruins the running time!!!!*/
-    /* write_tree(start_tree->tree, num_leaves, "./output/findpath.rtree"); */
+    /*write_tree(start_tree->tree, num_leaves, "./output/findpath.rtree");*/
     long current_mrca;
     long current_mrca_time;
     Tree current_tree;
@@ -749,12 +756,12 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         current_mrca_time = current_tree.tree[current_mrca].time;
         /*printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);*/
         /*printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);*/
-        while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){ /*#3*/
+        while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){
           bool did_nni = false;
           bool did_rnkmv = false;
           /*find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI */
           for (int child_index = 0; child_index < 2; child_index++){
-            /*do nni if current interval is an edge*/
+            /*do nni if current interval is an edge */
             if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1 && current_tree.tree[current_tree.tree[current_mrca].children[child_index]].time + 1 == current_tree.tree[current_mrca].time){
               bool found_child = false;
               /*index of the child of current_tree.tree[current_mrca] that does not move up by an NNI move*/
@@ -763,7 +770,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
               /*rank of already existing cluster in both current_tree.tree and dest_tree->tree*/
               int current_child_index = dest_tree->tree[current_node].children[0];
               while (found_child == false){
-                /*/find the x for which dest_tree->tree[i].children[x] is contained in the cluster induced by current_tree.tree[current_mrca - 1]*/
+                /*find the x for which dest_tree->tree[i].children[x] is contained in the cluster induced by current_tree.tree[current_mrca - 1]*/
                 while (current_tree.tree[current_child_index].parent < current_mrca - 1){
                   current_child_index = current_tree.tree[current_child_index].parent;
                 }
@@ -789,7 +796,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
             current_mrca--;
             did_rnkmv = true;
           }
-          if (did_nni == false && did_rnkmv == false && current_tree.tree[current_mrca].time > dest_tree->tree[current_mrca].time) {
+          if (did_nni == false && did_rnkmv == false && current_tree.tree[current_mrca].time > dest_tree->tree[current_node].time) {
             /*do decreasing length moves from mrca*/
             long l = current_mrca;
             for(long p = l; p > i; p--) {
@@ -798,7 +805,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
               }
             }  /*we decrease the node that was larger than expected.*/
             long j = l;
-            while(j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) {
+            while((j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) && j > current_mrca || (current_tree.tree[j].time > dest_tree->tree[current_node].time && j >= current_mrca)) {
               decreasing_length_move(current_tree_pointer, j);
               j--;
               path_index++;
@@ -815,12 +822,13 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
           current_node++;
         }
       } else if(current_tree.tree[current_node].time == i - num_leaves + 1){
-        /*do increasing length moves*/
+        /*Do increasing length moves*/
         long l = num_leaves * 2 - 2;
         long p = l;
 
         while(current_tree.tree[p].time >= i - num_leaves + 1) {
-          if(current_tree.tree[p].time + 1 < current_tree.tree[p+1].time) {
+          /*&& skips the root node, as we could increase it, but we don't need to compare it to anything.*/
+          if(p < num_leaves * 2 - 2 && current_tree.tree[p].time + 1 < current_tree.tree[p+1].time) {
             l = p;
           }
           p--;
@@ -846,7 +854,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
     } /*end of first for loop.*/
     free(current_tree.tree);
   }
-  return path_index;/*#10*/
+  return path_index;
 } /*end of findpath distance function.*/
 
 /* Return Find Path computes the shortest path between the first two trees in a
@@ -988,7 +996,6 @@ void free_tree_list(Tree_List * tl) {
 * distance, then runs return findpath and prints each tree after each move.
 */
 int main(int argc, char const *argv[]) {
-  int i;
   char filename[200]; /* length of filename set to be 200 char max */
   /*printf("What is the file containing trees?\n");
   scanf("%s", filename);*/
@@ -1023,8 +1030,6 @@ int main(int argc, char const *argv[]) {
   clock_t start_time = time(NULL);
   long distance;
   clock_t end_time = time(NULL);
-  long max_root_time = start_tree->root_time > dest_tree->root_time ? start_tree->root_time : dest_tree->root_time;
-  long max_dist = ((start_tree->num_leaves - 1) * (start_tree->num_leaves - 2))/2 + (max_root_time + 1 - start_tree->num_leaves + 1) * (start_tree->num_leaves - 1);
 
   /*Create cluster list of the path.*/
   char** my_cluster_list = findpath_cluster_list(start_tree->num_leaves, start_tree_str, dest_tree_str);
