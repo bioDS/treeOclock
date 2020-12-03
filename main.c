@@ -603,8 +603,8 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
       if(dest_tree->tree[current_node].time == i - num_leaves + 1) {
         current_mrca = mrca(current_tree_pointer, dest_tree->tree[current_node].children[0], dest_tree->tree[current_node].children[1]);
         current_mrca_time = current_tree.tree[current_mrca].time;
-        /*printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);*/
-        printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);
+        /*printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);
+        printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);*/
         while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){
           bool did_nni = false;
           bool did_rnkmv = false;
@@ -651,13 +651,16 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
             /*do decreasing length moves from mrca*/
             long l = current_mrca;
             for(long p = l; p > i; p--) {
-              if(current_tree.tree[p-1].time < current_tree.tree[p].time - 1) {
+              /*printf("%ld > %ld\n", p, mrca(dest_tree, current_tree.tree[p].children[0], current_tree.tree[p].children[1]));*/
+              /*something is not correct in the second part (j while loop)*/
+              if(current_tree.tree[p-1].time < current_tree.tree[p].time - 1 && p >= mrca(dest_tree, current_tree.tree[p].children[0], current_tree.tree[p].children[1])) {
                 l = p;
               }
             }  /*we decrease the node that was larger than expected.*/
             long j = l;
             /* && current_tree.tree[j].time > dest_tree->tree[j].time*/
-            while((j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) && j > current_mrca || (current_tree.tree[j].time > dest_tree->tree[current_node].time && j >= current_mrca)) {
+            /*printf("%ld >= %ld\n", current_tree.tree[j].time, i - num_leaves + 1);*/
+            while(j >= i - num_leaves && current_tree.tree[j].time != current_tree.tree[j-1].time+1 && j >= mrca(dest_tree, current_tree.tree[j].children[0], current_tree.tree[j].children[1]) && j >= current_node) {
               decreasing_length_move(current_tree_pointer, j);
               path.moves[path_index][1] = 4;
               path.moves[path_index][0] = j;
@@ -800,12 +803,15 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
             /*do decreasing length moves from mrca*/
             long l = current_mrca;
             for(long p = l; p > i; p--) {
-              if(current_tree.tree[p-1].time < current_tree.tree[p].time - 1) {
+              /*printf("%ld > %ld\n", p, mrca(dest_tree, current_tree.tree[p].children[0], current_tree.tree[p].children[1]));*/
+              /*something is not correct in the second part (j while loop)*/
+              if(current_tree.tree[p-1].time < current_tree.tree[p].time - 1 && p >= mrca(dest_tree, current_tree.tree[p].children[0], current_tree.tree[p].children[1])) {
                 l = p;
               }
             }  /*we decrease the node that was larger than expected.*/
             long j = l;
-            while((j >= current_node && current_tree.tree[j].time > dest_tree->tree[j].time) && j > current_mrca || (current_tree.tree[j].time > dest_tree->tree[current_node].time && j >= current_mrca)) {
+            /* && current_tree.tree[j].time > dest_tree->tree[j].time*/
+            while(j >= i - num_leaves && current_tree.tree[j].time != current_tree.tree[j-1].time+1 && j >= mrca(dest_tree, current_tree.tree[j].children[0], current_tree.tree[j].children[1]) && j >= current_node) {
               decreasing_length_move(current_tree_pointer, j);
               j--;
               path_index++;
