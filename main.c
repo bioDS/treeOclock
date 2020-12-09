@@ -1046,12 +1046,13 @@ int main(int argc, char const *argv[]) {
   start_tree = &tree_list.trees[0];
   dest_tree = &tree_list.trees[1];
   printf("Start running FindPath\n");
-  clock_t start_time = time(NULL);
+  time_t start_time, end_time;
   long distance;
-  clock_t end_time = time(NULL);
 
   /*Create cluster list of the path.*/
+  time(&start_time);
   char** my_cluster_list = findpath_cluster_list(start_tree->num_leaves, start_tree_str, dest_tree_str);
+  time(&end_time);
   printf("End running FindPath\n");
   distance = atol(my_cluster_list[0]);
   /*Print the distance between the two trees.*/
