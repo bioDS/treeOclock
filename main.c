@@ -605,7 +605,7 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
         current_mrca_time = current_tree.tree[current_mrca].time;
         printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);
         printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);
-        while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){
+        while((current_mrca > current_node && current_mrca_time > i - num_leaves + 1) || current_mrca_time != i - num_leaves + 1){
           bool did_nni = false;
           bool did_rnkmv = false;
           /*find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI */
@@ -767,7 +767,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         current_mrca_time = current_tree.tree[current_mrca].time;
         /*printf("mrca: %ld, time: %ld\n", current_mrca, current_mrca_time);*/
         /*printf("i: %ld, current node: %ld\n", i - num_leaves + 1, current_node);*/
-        while(current_mrca > current_node || current_mrca_time != i - num_leaves + 1){
+        while((current_mrca > current_node && current_mrca_time > i - num_leaves + 1) || current_mrca_time != i - num_leaves + 1){
           bool did_nni = false;
           bool did_rnkmv = false;
           /*find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI */

@@ -20,7 +20,7 @@
 
 ## Paths
 - int path[path_length][2]
-- The first row contains only the distance value of the path.
+- long length the distance value of the path.
 - Each following row path[i] represents a move (i + 1)th move on path
 - in first column: index of rank of lower node bounding interval of move: path[i][0] = k if move i happens on interval [k,k+1]. If the move was a length move, this column represents the node index of the move.
 - in second column: path[i][1] in {0,1,2,3,4} ; 0 if rank move, 1 if NNI move where children[0] stays child of lower node, 2 if NNI move where children[1] stays child of lower node, 3 if length move where k.time was increased, 4 if length move where k.time was decreased.
