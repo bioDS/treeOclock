@@ -45,3 +45,13 @@ findpath_distance.restype = c_long
 findpath_path = lib.return_findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_path.restype = TREE_LIST
+
+# C function findpath_moves_per_iteration
+findpath_moves_per_iteration = lib.findpath_moves_per_iteration
+findpath_moves_per_iteration.argtypes = [POINTER(TREE),POINTER(TREE)]
+findpath_moves_per_iteration.restype = POINTER(c_long)
+
+# C function random_walk
+random_walk = lib.random_walk
+random_walk.argtypes = [POINTER(TREE), c_long]
+random_walk.restype = c_long
