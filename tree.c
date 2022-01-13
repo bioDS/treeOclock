@@ -433,6 +433,7 @@ int uniform_neighbour(Tree * input_tree){
 
 
 long random_walk(Tree * tree, long k){
+    // Perform a series of k random RNNI moves to receive a random walk in RNNI, starting at input tree
     Tree * current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
     current_tree->num_leaves = tree->num_leaves;
     current_tree->tree = malloc((2 * tree->num_leaves - 1) * sizeof(Node)); // deep copy start tree
