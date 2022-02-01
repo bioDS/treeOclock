@@ -95,7 +95,6 @@ char* tree_to_string(Tree * input_tree){
 
 
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
-//TODO: update times for NNI move
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
@@ -122,7 +121,6 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
 
 
 // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
-//TODO: update times for rank move
 int rank_move(Tree * input_tree, long rank_in_list){
     if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
