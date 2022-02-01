@@ -340,6 +340,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                 } else{ // in this case we move the node to its final position
                     path_index += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
                     current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
+                    continue; // the current iteration is finished
                 }
                 bool did_nni = false; //we first check if we are at an edge. If not, then did_rnni stays false and we do a rank move
                 for (int child_index = 0; child_index < 2; child_index++){
