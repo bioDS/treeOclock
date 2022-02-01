@@ -20,7 +20,7 @@ int get_num_digits(int integer){
 }
 
 
-// Return tree as string in cluster format -- for testing purposes
+// Return tree as string in cluster format -- for testing purposes. Currently doesn't work
 char* tree_to_string(Tree * input_tree){
     if (input_tree->tree == NULL){
         printf("Error. Can't write tree. Given tree doesn't exist.\n");
@@ -31,7 +31,7 @@ char* tree_to_string(Tree * input_tree){
         long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
         char *tree_str = malloc(2 * max_str_length * sizeof(char));
 
-        // Check if input tree is 'correct'
+        // // Check if input tree is 'correct'
         // for (int i = 0; i < 2 * num_leaves - 1; i++){
         //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
         // }
@@ -68,8 +68,17 @@ char* tree_to_string(Tree * input_tree){
             }
             tree_str_pos = strlen(tree_str) - 1;
             tree_str[tree_str_pos] = '\0'; // delete last comma
-            strcat(tree_str, "},{");
-            tree_str_pos +=2;
+            strcat(tree_str, "}:"); // end of cluster, next we add time
+
+            // retrieve the time of the current node (i.e. cluster) as string/ char*
+            long num_digits_time = get_num_digits(input_tree->tree[i+num_leaves].time);
+            char time_str[num_digits_time + 1];
+            sprintf(time_str, "%ld", input_tree->tree[i+num_leaves].time);
+            strcat(tree_str, time_str);
+
+            // beginning of next cluster
+            strcat(tree_str, ",{");
+            tree_str_pos = strlen(tree_str)-1;
         }
         tree_str[tree_str_pos] = '\0'; // delete ,{ at end of tree_str
         tree_str[tree_str_pos - 1] = '\0';
@@ -86,6 +95,7 @@ char* tree_to_string(Tree * input_tree){
 
 
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
+//TODO: update times for NNI move
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
@@ -112,6 +122,7 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
 
 
 // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
+//TODO: update times for rank move
 int rank_move(Tree * input_tree, long rank_in_list){
     if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
@@ -159,6 +170,7 @@ int rank_move(Tree * input_tree, long rank_in_list){
 
 
 // find mrca of nodes with positions node1 and node2 in tree
+// returns the rank of the mrca
 long mrca(Tree * input_tree, long node1, long node2){
     long rank1 = node1;
     long rank2 = node2;
@@ -295,8 +307,6 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
     } else if (dest_tree->tree == NULL){
         printf("Error. Destination tree doesn't exist.\n");
     } else{
-        remove("./output/findpath.rtree");
-        // write_tree(start_tree->tree, num_leaves, "./output/findpath.rtree"); // this ruins the running time!!!!!!!!
         long current_mrca; //rank of the mrca that needs to be moved down
         Tree current_tree;
         current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
@@ -309,14 +319,31 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
             // check if we need to move some nodes up (this is the case if there are nodes with time between current_tree.tree[i-1].time and dest_tree->tree[i].time)
+            printf("current tree: %s\n", tree_to_string(current_tree_pointer));
             if (current_tree.tree[i].time < dest_tree->tree[i].time){
                 path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
             }
-            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
-            // move current_mrca down
-            while(current_mrca != i){
-                bool did_nni = false;
-                for (int child_index = 0; child_index < 2; child_index++){ // find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
+            // we now need to find the current MRCA and decrease its time in the tree
+            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
+            // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
+            while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
+                // We first see if we need to do length moves:
+                printf("times: %ld, %ld\n",current_tree.tree[current_mrca].time, current_tree.tree[current_mrca-1].time + 1 );
+                // We need to move the current node down by length moves if its time is above the max time of its children & above the time of the node in dest_tree
+                // We hence move the current node to be either at the same position as the corresponding node in dest_tree, or right above its child:
+                if (current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){ // if the time of the current node is already the time of its child+1, this doesn't change anything
+                    printf("current_mrca: %ld\n", current_mrca);
+                    // Update the time to be one greater than the time of the next lower node.
+                    // This is equivalent to doing length moves, so we add the time difference to the distance
+                    path_index += current_tree.tree[current_mrca].time - current_tree.tree[current_mrca-1].time + 1;
+                    current_tree.tree[current_mrca].time = current_tree.tree[current_mrca-1].time + 1;
+                } else{ // in this case we move the node to its final position
+                    path_index += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
+                    current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
+                }
+                bool did_nni = false; //we first check if we are at an edge. If not, then did_rnni stays false and we do a rank move
+                for (int child_index = 0; child_index < 2; child_index++){
+                    // find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
                     if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1){ // do nni if current interval is an edge
                         // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move 
                         bool found_child = false; //indicate if we found the correct child
