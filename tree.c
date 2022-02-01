@@ -173,6 +173,35 @@ long mrca(Tree * input_tree, long node1, long node2){
 }
 
 
+// Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
+int move_up(Tree * itree, long i, long k){
+    long num_moves = 0; // counter for the number of moves that are necessary
+    if (itree->tree == NULL){
+        printf("Error. No moves possible. Given tree doesn't exist.\n");
+    } else{
+        long j = i;
+        // Find the highest j that needs to be moved up
+        while (itree->tree[j].time < k){
+            j ++;
+        }
+        long num_moving_nodes = j - i; // number of nodes that will need to be moved
+        // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
+        // Find the uppermost node that needs to move up
+        while (itree->tree[j].time < k+num_moving_nodes){
+            j++;
+        }
+        // Now j is the index of the uppermost node whose time needs to be increased.
+        // If j is above k, then we need to move it to k+j
+        // In general, the nodes that have index between i and j need to end up having time k+index-i
+        for (long index = i; index < j; index++){ // Do all required length moves
+            num_moves += k+index-i - itree->tree[index].time;
+            itree->tree[index].time = k+index-i;
+        }
+    }
+    return num_moves;
+}
+
+
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 Path findpath(Tree *start_tree, Tree *dest_tree){
     float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
@@ -275,9 +304,14 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         for (long i = 0; i < 2 * num_leaves - 1; i++){
             current_tree.tree[i] = start_tree->tree[i];
         }
+        // This pointer is needed for finding the mrca, and doing moves (nni, rank, length)
         Tree * current_tree_pointer;
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
+            // check if we need to move some nodes up (this is the case if there are nodes with time between current_tree.tree[i-1].time and dest_tree->tree[i].time)
+            if (current_tree.tree[i].time < dest_tree->tree[i].time){
+                path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
+            }
             current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
             // move current_mrca down
             while(current_mrca != i){
