@@ -321,13 +321,10 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         Tree * current_tree_pointer;
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
-            printf("iteration %ld\n", i-num_leaves+1);
             // check if we need to move some nodes up (this is the case if there are nodes with time between current_tree.tree[i-1].time and dest_tree->tree[i].time)
-            printf("tree before this iteration: %s\n current path length: %ld\n", tree_to_string(current_tree_pointer), path_index);
             if (current_tree.tree[i].time < dest_tree->tree[i].time){
                 path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
             }
-            printf("path length after  move_up: %ld\n", path_index);
             // we now need to find the current MRCA and decrease its time in the tree
             current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
             // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
@@ -339,12 +336,11 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                     if( current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){
                         // Update the time to be one greater than the time of the next lower node.
                         // This is equivalent to doing length moves, so we add the time difference to the distance
-                        path_index += current_tree.tree[current_mrca].time - current_tree.tree[current_mrca-1].time + 1;
+                        path_index += current_tree.tree[current_mrca].time - (current_tree.tree[current_mrca-1].time + 1);
                         current_tree.tree[current_mrca].time = current_tree.tree[current_mrca-1].time + 1;
                     // Or we move the current node to be at the same position as the corresponding node in dest_tree
                     } else{ // in this case we move the node to its final position
                         path_index += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
-                        printf("length move down\n");
                         current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
                         continue; // the current iteration is finished
                     }
