@@ -17,7 +17,8 @@ typedef struct Tree{
 
 typedef struct Tree_List{
   Tree * trees;
-  int num_trees;
+  long num_trees;
+  long max_root_time;
 } Tree_List;
 
 

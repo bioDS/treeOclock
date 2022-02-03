@@ -23,11 +23,11 @@ class TREE(Structure):
 
 
 class TREE_LIST(Structure):
-    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_int)]
-    def __init_(self, trees, num_trees):
+    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long), ('max_root_time', c_long)]
+    def __init_(self, trees, num_trees, max_root_time):
         self.trees = trees
         self.num_trees = num_trees
-
+        self.max_root_time = max_root_time
 
 
 # C function tree_to_string (for testing purposes)
