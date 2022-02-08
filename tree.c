@@ -192,27 +192,27 @@ int move_up(Tree * itree, long i, long k){
         printf("Error. No moves possible. Given tree doesn't exist.\n");
     } else{
         long j = i;
-        printf("k: %ld\n", k);
+        // printf("k: %ld\n", k);
         // Find the highest j that needs to be moved up -- maximum is reached at root!
-        while (itree->tree[j+1].time <= k && j+1 <2*itree->num_leaves-2){
+        while (itree->tree[j+1].time <= k && j+1 <=2*itree->num_leaves-2){
             j ++;
         }
-        printf("j after first loop: %ld\n", j);
+        // printf("j after first loop: %ld\n", j);
         long num_moving_nodes = j - i; // number of nodes that will need to be moved
         // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
         // Find the uppermost node that needs to move up
-        while (itree->tree[j+1].time <= k+num_moving_nodes && j+1 <2*itree->num_leaves-2){
+        while (itree->tree[j+1].time <= k+num_moving_nodes && j+1 <=2*itree->num_leaves-2){
             j++;
             num_moving_nodes++;
         }
-        printf("Index range in move_up: %ld, %ld\n", i, j);
-        printf("Time range in move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
+        // printf("Index range in move_up: %ld, %ld\n", i, j);
+        // printf("Time range in move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
         // Now j is the index of the uppermost node whose time needs to be increased.
         // If j is above k, then we need to move it to time[j]+k
         // In general, the nodes that have index between i and j need to end up having time k+index-i
         // !!!!! SOMETHING IS WRONG WITH THE ROOT TIME HERE, I THINK!!!!
         for (long index = i; index <= j; index++){ // Do all required length moves
-            printf("index: %ld\n", index);
+            // printf("index: %ld\n", index);
             num_moves += k+index-i - itree->tree[index].time;
             itree->tree[index].time = k+index-i;
         }
@@ -221,10 +221,10 @@ int move_up(Tree * itree, long i, long k){
         //     num_moves += k+j-i - itree->tree[j].time;
         //     itree->tree[j].time = k+j-i;
         // }
-        printf("Times after move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
+        // printf("Times after move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
     }
     // printf("current tree in move_up: %s\n", tree_to_string(itree));
-    printf("root time after move_up: %ld\n", itree->tree[2*itree->num_leaves - 2].time);
+    // printf("root time after move_up: %ld\n", itree->tree[2*itree->num_leaves - 2].time);
     return num_moves;
 }
 
