@@ -333,36 +333,17 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         Tree * current_tree_pointer;
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
-            // printf("iteration: %ld, dest_time: %ld\n", i, dest_tree->tree[i].time);
-            // !!!!!!! It seems like we move some nodes up that have already been at the correct position! !!!!!!!!!!
-            // printf("before move_up: current node time: %ld, dest node time: %ld\n", current_tree.tree[i].time, dest_tree->tree[i].time);
             if (current_tree.tree[i].time < dest_tree->tree[i].time){
                 path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
             }
-            // printf("iteration: %ld\n", i);
-            // printf("after move_up: current node time: %ld, dest node time: %ld\n", current_tree.tree[i].time, dest_tree->tree[i].time);
-            // printf("children of dest node: %ld, %ld\n", dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
             // we now need to find the current MRCA and decrease its time in the tree
             current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
-//             printf("mrca: %ld\n", current_mrca);
-//             printf("children of mrca: %ld, %ld \n", current_tree.tree[current_mrca]
-// .children[0], current_tree.tree[current_mrca].children[1]);
-//             printf("children of dest_mrca: %ld, %ld \n", current_tree.tree[current_mrca]
-// .children[0], current_tree.tree[current_mrca].children[1]);
-//             printf("iteration i: %ld\n", i);
-            // if (current_mrca < i){
-            //     printf("current mrca: %ld, current iteration: %ld\n", current_mrca, i);
-            //     printf("children of current_mrca: %ld, %ld, children of dest node: %ld, %ld\n", current_tree.tree[current_mrca].children[0], current_tree.tree[current_mrca].children[1], dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
-            // }
             // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
-            // !!!!!! Problem: it seems to be possible for the time of the current_mrca to be smaller than the time of its final position! !!!!!!!!!!
             while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
-                // printf("root time: %ld\n", current_tree.tree[2*num_leaves - 2].time);
-                // printf("current node time: %ld, dest node time: %ld\n", current_tree.tree[current_mrca].time, dest_tree->tree[i].time);
                 // We first see if we need to do length moves:
                 // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
+                // After this, we do an NNI or rank move and then repeat the while loop
                 if (current_tree.tree[current_mrca-1].time < current_tree.tree[current_mrca].time - 1){
-                    // printf("length moves requried\n");
                     // We either need to move the node to be right above the time of the next lower node...
                     if( current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){
                         // Update the time to be one greater than the time of the next lower node.
@@ -401,14 +382,12 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                                 current_child_index = dest_tree->tree[i].children[1];
                             }
                         }
-                        // printf("nni move\n");
                         nni_move(current_tree_pointer, current_mrca - 1, 1 - child_stays);
                         did_nni = true;
                         current_mrca--;
                     }
                 }
                 if (did_nni == false){
-                    // printf("rank move\n");
                     rank_move(current_tree_pointer, current_mrca - 1);
                     current_mrca--;
                 }
