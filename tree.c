@@ -120,6 +120,50 @@ int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
 }
 
 
+// ranked SPR move pruning the child with index child_moving of the node at position r of the node_list.
+// The subtree gets re-attached as sibling of the node at position new_sibling of the node_list.
+// Note that r and new_sibling are the positions in the node_list rather than actual ranks.
+int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
+    if (input_tree->tree == NULL){
+        printf("Error. No SPR move possible. Given tree doesn't exist.\n");
+        return 1;
+    } else if (new_sibling > r || input_tree->tree[new_sibling].parent < r){
+        printf("Error. No SPR move possible, as destination edge does not cover rank r.\n");
+        return 1;
+    } else {
+        // Print input tree
+        for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
+            printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
+        }
+        long old_parent = input_tree->tree[r].parent;
+        long new_parent = input_tree->tree[new_sibling].parent;
+        long old_sibling = input_tree->tree[r].children[1-child_moving];
+        printf("Old parent: %ld, new_parent: %ld, old_sibling: %ld\n", old_parent, new_parent, old_sibling);
+        // update part of tree where subtree has been pruned
+        for (int i=0; i<=1; i++){
+            if (input_tree->tree[old_parent].children[i] == r){
+                input_tree->tree[old_sibling].parent = old_parent;
+                input_tree->tree[old_parent].children[i] = old_sibling;
+            }
+        }
+        // update part of tree where subtree gets re-attached
+        for (int i=0; i<=1; i++){
+            if (input_tree->tree[new_parent].children[i] == new_sibling){
+                input_tree->tree[r].parent = new_parent;
+                input_tree->tree[new_parent].children[i] = r;
+            }
+        }
+        input_tree->tree[new_sibling].parent = r;
+        input_tree->tree[r].children[1-child_moving] = new_sibling;
+    }
+    // Print tree after SPR move
+    for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
+        printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
+    }
+    return 0;
+}
+
+
 // Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
 int rank_move(Tree * input_tree, long rank_in_list){
     if (input_tree->tree == NULL){

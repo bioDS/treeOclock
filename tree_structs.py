@@ -35,6 +35,10 @@ tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
 tree_to_cluster_string.restype = c_char_p
 
+# C function spr_move (for testing purposes)
+spr_move = lib.spr_move
+spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
+spr_move.restype = c_int
 
 # C function findpath_distance
 findpath_distance = lib.findpath_distance
