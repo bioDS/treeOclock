@@ -40,6 +40,11 @@ spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
 
+# C function spr_neighbourhood (for testing purposes)
+spr_neighbourhood = lib.spr_neighbourhood
+spr_neighbourhood.argtypes = [POINTER(TREE)]
+spr_neighbourhood.restype = TREE_LIST
+
 # C function findpath_distance
 findpath_distance = lib.findpath_distance
 findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]

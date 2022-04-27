@@ -131,14 +131,14 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
         printf("Error. No SPR move possible, as destination edge does not cover rank r.\n");
         return 1;
     } else {
-        // Print input tree
-        for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
-            printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
-        }
+        // // Print input tree
+        // for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
+        //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
+        // }
         long old_parent = input_tree->tree[r].parent;
         long new_parent = input_tree->tree[new_sibling].parent;
         long old_sibling = input_tree->tree[r].children[1-child_moving];
-        printf("Old parent: %ld, new_parent: %ld, old_sibling: %ld\n", old_parent, new_parent, old_sibling);
+        // printf("Old parent: %ld, new_parent: %ld, old_sibling: %ld\n", old_parent, new_parent, old_sibling);
         // update part of tree where subtree has been pruned
         for (int i=0; i<=1; i++){
             if (input_tree->tree[old_parent].children[i] == r){
@@ -156,10 +156,10 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
         input_tree->tree[new_sibling].parent = r;
         input_tree->tree[r].children[1-child_moving] = new_sibling;
     }
-    // Print tree after SPR move
-    for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
-        printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
-    }
+    // // Print tree after SPR move
+    // for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
+    //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
+    // }
     return 0;
 }
 
@@ -273,7 +273,90 @@ int move_up(Tree * itree, long i, long k){
 }
 
 
+// Compute a path in SPR and return it as Tree_List
+Tree_List spr_neighbourhood(Tree *input_tree){
+    long num_leaves = input_tree->num_leaves;
+
+    // Initialise list of neighbours
+    Tree_List neighbour_list; // output: list of trees on FP path
+    neighbour_list.num_trees = 2 * num_leaves * (num_leaves - 1); //max number of neighbours (quadratic in number of ranks + at most linear number of rank moves)
+    neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
+    for (long i = 0; i < neighbour_list.num_trees; i++){
+        neighbour_list.trees[i].num_leaves = num_leaves;
+        neighbour_list.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    long index = 0; //index to the currently last element in neighbour_list
+
+    //Deep copy input tree to get neighbouring trees
+    Tree * neighbour = malloc(sizeof(Node*) + 3 * sizeof(long));
+    neighbour->num_leaves = num_leaves;
+    neighbour->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        neighbour->tree[i] = input_tree->tree[i];
+    }
+
+    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    for (long r=num_leaves; r<2* num_leaves-2; r++){
+        printf("%s\n", tree_to_string(input_tree));
+        // Check if we can do rank move:
+        if (r < 2*num_leaves - 2 && input_tree->tree[r].parent != r+1){
+            rank_move(neighbour, r);
+            printf("rank move\n");
+
+            // Add neighbour to neighbour_list:
+            // deep copy neighbour to path
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+            }
+            index++;
+            // always reset neighbour to be input_tree after every move
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour->tree[i] = input_tree->tree[i];
+            } 
+
+        }
+        printf("rank: %ld\n", r);
+        for (long new_sibling=0; new_sibling<r; new_sibling++){
+            printf("sibling %ld\n", new_sibling);
+            if (input_tree->tree[new_sibling].parent > r){
+                // Two SPR moves, moving either of the children of the node of rank r
+                spr_move(neighbour, r, new_sibling, 0);
+                // Add neighbour to neighbour_list:
+                // deep copy neighbour to path
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+                }
+                index++;
+                // always reset neighbour to be input_tree after every move
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour->tree[i] = input_tree->tree[i];
+                }
+
+                spr_move(neighbour, r, new_sibling, 1);
+                // Add neighbour to neighbour_list:
+                // deep copy neighbour to path
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+                }
+                index++;
+                // always reset neighbour to be input_tree after every move
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour->tree[i] = input_tree->tree[i];
+                }
+            }
+
+        }
+    }
+    neighbour_list.num_trees = index;
+    printf("number of neighbours: %ld\n", index);
+    free(neighbour);
+    return(neighbour_list);
+}
+
+
+
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
+// This function only works for ranked trees
 Path findpath(Tree *start_tree, Tree *dest_tree){
     float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
     long num_leaves = start_tree->num_leaves;
