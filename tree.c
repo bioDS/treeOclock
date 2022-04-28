@@ -354,6 +354,53 @@ Tree_List spr_neighbourhood(Tree *input_tree){
 }
 
 
+long mrca_differences(Tree* current_tree, Tree* dest_tree){
+    // Compute differences of ranks of mrca's of all cluster of dest_tree btw current_tree and dest_tree
+    // Also add ranks of parent of leaves
+    long sum = 0;
+    long num_leaves = dest_tree->num_leaves;
+    long mrca_list[2*num_leaves-1]; // at position i save rank(mrca_{current_tree}(C_i)) where C_i is the cluster induced by node of rank i in dest_tree
+    // First iterate through leaves
+    for (long i = 0; i < num_leaves; i++){
+        sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
+        printf("i: %ld, sum: %ld\n", i, sum);
+    }
+    for (long i = num_leaves; i < 2*num_leaves - 2; i++){
+        // iterate through the ranks of mrcas in dest_tree
+        // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
+        printf("i: %ld, sum: %ld\n", i, sum);
+        long child0;
+        if (dest_tree->tree[i].children[0] < num_leaves){
+            printf("Child0 is leaf\n");
+            child0 = dest_tree->tree[i].children[0];
+        } else{
+            child0 = mrca_list[dest_tree->tree[i].children[0]];
+            printf("Child0 is internal node\n");
+        }
+
+        long child1;
+        if (dest_tree->tree[i].children[1] < num_leaves){
+            child1 = dest_tree->tree[i].children[1];
+        } else{
+            child1 = mrca_list[dest_tree->tree[i].children[1]];
+        }
+        printf("child0: %ld, child1: %ld\n", child0, child1);
+
+        long current_mrca = mrca(current_tree, child0, child1);
+        mrca_list[i] = current_mrca;
+        printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
+        sum += abs(current_mrca - i);
+        printf("i: %ld, sum: %ld\n", i, sum);
+    }
+    return(sum);
+}
+
+
+// Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
+//     // compute a path between start_tree and dest_tree (approximation for shortest path)
+
+// }
+
 
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 // This function only works for ranked trees

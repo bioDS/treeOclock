@@ -40,6 +40,10 @@ spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
 
+mrca_differences = lib.mrca_differences
+mrca_differences.argtypes = [POINTER(TREE), POINTER(TREE)]
+mrca_differences.restype = c_long
+
 # C function spr_neighbourhood (for testing purposes)
 spr_neighbourhood = lib.spr_neighbourhood
 spr_neighbourhood.argtypes = [POINTER(TREE)]
