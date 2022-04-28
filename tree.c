@@ -404,7 +404,7 @@ Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
 
     // Initialise output path
     Tree_List path; // output: list of trees on FP path
-    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2); //diameter of rankedspr is less than quadratic
+    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
     path.trees = malloc(path.num_trees * sizeof(Tree));
     for (long i = 0; i < path.num_trees; i++){
         path.trees[i].num_leaves = num_leaves;
@@ -420,10 +420,15 @@ Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         current_tree->tree[i] = start_tree->tree[i];
     }
+    // Add the first tree to output path
+    for (long j = 0; j < 2 * num_leaves - 1; j++){
+        path.trees[index].tree[j] = current_tree->tree[j];
+    }
+    index+=1;
 
     long mrca_diff = mrca_differences(current_tree, dest_tree);
     while (mrca_diff > 0){
-        printf("current tree: %s\n", tree_to_string(current_tree));
+        // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = spr_neighbourhood(current_tree);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
@@ -439,11 +444,12 @@ Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
                 }
             }
         }
-        for (long j = 0; j < 2 * num_leaves - 2; j++){
+        for (long j = 0; j < 2 * num_leaves - 1; j++){
             path.trees[index].tree[j] = current_tree->tree[j];
         }
         index += 1;
     }
+    free(current_tree);
     path.num_trees = index;
     return(path);
 }
