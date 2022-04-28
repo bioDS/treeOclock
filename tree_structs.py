@@ -40,9 +40,15 @@ spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
 
+# C function to compute sum of mrca ranks (for testing)
 mrca_differences = lib.mrca_differences
 mrca_differences.argtypes = [POINTER(TREE), POINTER(TREE)]
 mrca_differences.restype = c_long
+
+# C function to compute paths in rankedspr
+rankedspr_path = lib.rankedspr_path
+rankedspr_path.argtypes = [POINTER(TREE), POINTER(TREE)]
+rankedspr_path.restype = TREE_LIST
 
 # C function spr_neighbourhood (for testing purposes)
 spr_neighbourhood = lib.spr_neighbourhood

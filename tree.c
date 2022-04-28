@@ -132,6 +132,7 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
         return 1;
     } else {
         // // Print input tree
+        // printf("input tree:\n");
         // for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
         //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
         // }
@@ -157,7 +158,8 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
         input_tree->tree[r].children[1-child_moving] = new_sibling;
     }
     // // Print tree after SPR move
-    // for (int i = 0; i < 2 * input_tree->num_leaves - 1; i++){
+    // printf("neighbouring tree:\n");
+    // for (int i = 0; i < 2 * input_tree->num_leaves-1; i++){
     //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
     // }
     return 0;
@@ -297,11 +299,11 @@ Tree_List spr_neighbourhood(Tree *input_tree){
 
     // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
     for (long r=num_leaves; r<2* num_leaves-2; r++){
-        printf("%s\n", tree_to_string(input_tree));
+        // printf("%s\n", tree_to_string(input_tree));
         // Check if we can do rank move:
         if (r < 2*num_leaves - 2 && input_tree->tree[r].parent != r+1){
             rank_move(neighbour, r);
-            printf("rank move\n");
+            // printf("rank move\n");
 
             // Add neighbour to neighbour_list:
             // deep copy neighbour to path
@@ -315,9 +317,9 @@ Tree_List spr_neighbourhood(Tree *input_tree){
             } 
 
         }
-        printf("rank: %ld\n", r);
+        // printf("rank: %ld\n", r);
         for (long new_sibling=0; new_sibling<r; new_sibling++){
-            printf("sibling %ld\n", new_sibling);
+            // printf("sibling %ld\n", new_sibling);
             if (input_tree->tree[new_sibling].parent > r){
                 // Two SPR moves, moving either of the children of the node of rank r
                 spr_move(neighbour, r, new_sibling, 0);
@@ -348,7 +350,7 @@ Tree_List spr_neighbourhood(Tree *input_tree){
         }
     }
     neighbour_list.num_trees = index;
-    printf("number of neighbours: %ld\n", index);
+    // printf("number of neighbours: %ld\n", index);
     free(neighbour);
     return(neighbour_list);
 }
@@ -360,22 +362,22 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree){
     long sum = 0;
     long num_leaves = dest_tree->num_leaves;
     long mrca_list[2*num_leaves-1]; // at position i save rank(mrca_{current_tree}(C_i)) where C_i is the cluster induced by node of rank i in dest_tree
-    // First iterate through leaves
-    for (long i = 0; i < num_leaves; i++){
-        sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
-        printf("i: %ld, sum: %ld\n", i, sum);
-    }
+    // // First iterate through leaves
+    // for (long i = 0; i < num_leaves; i++){
+    //     sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
+    //     // printf("i: %ld, sum: %ld\n", i, sum);
+    // }
     for (long i = num_leaves; i < 2*num_leaves - 2; i++){
         // iterate through the ranks of mrcas in dest_tree
         // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
-        printf("i: %ld, sum: %ld\n", i, sum);
+        // printf("i: %ld, sum: %ld\n", i, sum);
         long child0;
         if (dest_tree->tree[i].children[0] < num_leaves){
-            printf("Child0 is leaf\n");
+            // printf("Child0 is leaf\n");
             child0 = dest_tree->tree[i].children[0];
         } else{
             child0 = mrca_list[dest_tree->tree[i].children[0]];
-            printf("Child0 is internal node\n");
+            // printf("Child0 is internal node\n");
         }
 
         long child1;
@@ -384,22 +386,67 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree){
         } else{
             child1 = mrca_list[dest_tree->tree[i].children[1]];
         }
-        printf("child0: %ld, child1: %ld\n", child0, child1);
+        // printf("child0: %ld, child1: %ld\n", child0, child1);
 
         long current_mrca = mrca(current_tree, child0, child1);
         mrca_list[i] = current_mrca;
-        printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
+        // printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
         sum += abs(current_mrca - i);
-        printf("i: %ld, sum: %ld\n", i, sum);
+        // printf("i: %ld, sum: %ld\n", i, sum);
     }
     return(sum);
 }
 
 
-// Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
-//     // compute a path between start_tree and dest_tree (approximation for shortest path)
+Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
+    // compute a path between start_tree and dest_tree (approximation for shortest path)
+    long num_leaves = start_tree->num_leaves;
 
-// }
+    // Initialise output path
+    Tree_List path; // output: list of trees on FP path
+    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2); //diameter of rankedspr is less than quadratic
+    path.trees = malloc(path.num_trees * sizeof(Tree));
+    for (long i = 0; i < path.num_trees; i++){
+        path.trees[i].num_leaves = num_leaves;
+        path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    // current path index (i.e. current path length)
+    long index = 0;
+
+    //Deep copy start tree to get new tree to be added to path iteratively
+    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = start_tree->tree[i];
+    }
+
+    long mrca_diff = mrca_differences(current_tree, dest_tree);
+    while (mrca_diff > 0){
+        printf("current tree: %s\n", tree_to_string(current_tree));
+        Tree_List neighbours = spr_neighbourhood(current_tree);
+        for (long i = 0; i < neighbours.num_trees; i++){
+            Tree* neighbour_pointer;
+            neighbour_pointer = &neighbours.trees[i];
+            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree);
+            // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
+            // printf("mrca_diff: %ld\n", new_mrca_diff);
+            if (new_mrca_diff < mrca_diff){
+                mrca_diff = new_mrca_diff;
+                // update current_tree and add it to path list
+                for (long j = 0; j < 2 * num_leaves - 1; j++){
+                    current_tree->tree[j] = neighbour_pointer->tree[j];
+                }
+            }
+        }
+        for (long j = 0; j < 2 * num_leaves - 2; j++){
+            path.trees[index].tree[j] = current_tree->tree[j];
+        }
+        index += 1;
+    }
+    path.num_trees = index;
+    return(path);
+}
 
 
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
