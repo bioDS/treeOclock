@@ -398,7 +398,7 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree){
 }
 
 
-Tree_List rankedspr_path(Tree* start_tree, Tree* dest_tree){
+Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
     // compute a path between start_tree and dest_tree (approximation for shortest path)
     long num_leaves = start_tree->num_leaves;
 
