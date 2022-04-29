@@ -399,6 +399,7 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree){
 
 
 long symmetric_cluster_diff(Tree* tree1, Tree* tree2){
+    // Computes sum of symmetric differences of clusters of tree1 and tree2 for all ranks i=1,..,n-1
     long num_leaves = tree1->num_leaves;
 
     // Get clusters for both trees:
