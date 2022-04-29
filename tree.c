@@ -398,6 +398,62 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree){
 }
 
 
+long symmetric_cluster_diff(Tree* tree1, Tree* tree2){
+    long num_leaves = tree1->num_leaves;
+
+    // Get clusters for both trees:
+    // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
+    long ** clusters_t1 = malloc((num_leaves - 1) * sizeof(long *));
+    for (long i = 0; i < num_leaves - 1; i++){
+        clusters_t1[i] = malloc((num_leaves) * sizeof(long));
+    }
+
+    for (long i = 0; i < num_leaves ; i++){
+        for (long j = 0; j < num_leaves - 1; j++){
+            clusters_t1[j][i] = 0; //initialise all entries to be 0
+        }
+        long j = i;
+        while (tree1->tree[j].parent != -1){
+            j = tree1->tree[j].parent;
+            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
+            clusters_t1[j - num_leaves][i] = 1;
+        }
+        clusters_t1[num_leaves - 2][i] = 1;
+    }
+
+    long ** clusters_t2 = malloc((num_leaves - 1) * sizeof(long *));
+    for (long i = 0; i < num_leaves - 1; i++){
+        clusters_t2[i] = malloc((num_leaves) * sizeof(long));
+    }
+
+    for (long i = 0; i < num_leaves ; i++){
+        for (long j = 0; j < num_leaves - 1; j++){
+            clusters_t2[j][i] = 0; //initialise all entries to be 0
+        }
+        long j = i;
+        while (tree2->tree[j].parent != -1){
+            j = tree2->tree[j].parent;
+            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
+            clusters_t2[j - num_leaves][i] = 1;
+        }
+        clusters_t2[num_leaves - 2][i] = 1;
+    }
+
+    // Now compute symmetric difference between clusters (i.e. all columns that have a 1 in cluster_t1 or cluster_t2 and a 0 in the other matrix)
+    long symm_diff = 0;
+    for (long i = 0; i < num_leaves -1; i++){
+        for (long j = 0; j < num_leaves; j++){
+            if (clusters_t1[i][j] + clusters_t2[i][j] == 1){
+                symm_diff++;
+            }
+        }
+    }
+    free(clusters_t1);
+    free(clusters_t2);
+    return(symm_diff);
+}
+
+
 Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
     // compute a path between start_tree and dest_tree (approximation for shortest path)
     long num_leaves = start_tree->num_leaves;
