@@ -80,8 +80,7 @@ char* tree_to_string(Tree * input_tree){
             strcat(tree_str, ",{");
             tree_str_pos = strlen(tree_str)-1;
         }
-        tree_str[strlen(tree_str) - 1] = '\0'; // delete ,{ at end of tree_str
-        tree_str[strlen(tree_str) - 2] = '\0';
+        tree_str[strlen(tree_str) - 2] = '\0'; // delete , at end of tree_str
         strcat(tree_str, "]");
 
         for (long i = 0; i < num_leaves - 1; i++){
