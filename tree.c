@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include "tree.h"
+#include "queue.c"
 
 
 // Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
@@ -567,6 +568,109 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
     free(current_tree);
     path.num_trees = index;
     return(path);
+}
+
+
+// CURRENTLY WE RETURN A 0 IF THE ALGORITHM FINISHED.
+// WE STILL NEED TO IMPLEMENT A DICT OR SOMETHING TO KEEP TRACK OF THE ACTUAL LENGTH OF A PATH
+int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
+    // compute a path between start_tree and dest_tree (approximation for shortest path)
+    // this approach uses tree search by only considering a few specific neighbours to the current tree
+    long num_leaves = start_tree->num_leaves;
+
+    // Initialise output path
+    Tree_List path; // output: list of trees on FP path
+    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
+    path.trees = malloc(path.num_trees * sizeof(Tree));
+    for (long i = 0; i < path.num_trees; i++){
+        path.trees[i].num_leaves = num_leaves;
+        path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    // current path index (i.e. current path length)
+    long index = 0;
+
+    //Deep copy start tree to get new tree to be added to path iteratively
+    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = start_tree->tree[i];
+    }
+    // Add the first tree to output path
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        path.trees[index].tree[i] = current_tree->tree[i];
+    }
+    index+=1;
+
+    Queue* to_visit = queue_new();  
+    queue_push_tail(to_visit, current_tree);
+    long r=0; //rank of the lowest node that induces different clusters in current_tree and dest_tree.
+    while (queue_is_empty(to_visit) != 0){
+        current_tree = queue_pop_head(to_visit);
+        // Find the lowest node (at position r) for which current_tree and dest_tree are different
+        for (long i = num_leaves; i < 2*num_leaves - 1; i++){
+            if (!((current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1])||
+            (current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
+                r = i;
+                break;
+            }
+        }
+        // Initialise list of neighbours
+        Tree_List neighbours;
+        neighbours.trees = malloc(5 * sizeof(Tree)); // We consider a max of 5 neighbouring trees (depending on tree shape)
+        for (long i = 0; i < 5; i++){
+            neighbours.trees[i].num_leaves = num_leaves;
+            neighbours.trees[i].tree = current_tree[i].tree; // initially every neighbour is current_tree
+        }
+
+        long index=0;
+        // first neighbour : rank move
+        long mrca_rank = mrca(current_tree, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]); //find currently considered mrca and check if the interval below it allows rank move
+        printf("mrca: %ld\n", mrca_rank);
+        if (current_tree->tree[mrca_rank].children[0] == mrca_rank-1 ||
+        current_tree->tree[mrca_rank].children[1] == mrca_rank-1){
+            Tree* neighbour_pointer;
+            neighbour_pointer = &neighbours.trees[index];
+            rank_move(neighbour_pointer, mrca_rank);
+            index++;
+        }
+        // next (up to four) neighbours: move current_tree children[i] to dest_tree children[j] (if possible)
+        Tree* neighbour_pointer;
+        for (int i = 0; i <2; i++){
+            for (int j = 0; j < 2; j++){
+                neighbour_pointer = &neighbours.trees[index];
+                long child_moving = current_tree->tree[r].children[i];
+                long new_sibling = dest_tree->tree[r].children[j];
+                if (new_sibling != child_moving){
+                    Tree* neighbour_pointer;
+                    neighbour_pointer = &neighbours.trees[index];
+                    spr_move(neighbour_pointer, r, new_sibling, child_moving);
+                    index++;
+                }
+            }
+        }
+        // Set the number of neighbours
+        neighbours.num_trees=index;
+        // Now add neighbours to queue and check if we already reached destination tree.
+        // If we reached it, we can stop.
+        for(int i = 0; i < neighbours.num_trees; i++){
+            neighbour_pointer = &neighbours.trees[i];
+            queue_push_tail(to_visit, neighbour_pointer);
+            // Check if we reached destination tree already
+            int found = 0;
+            for (long j = 0; j < 2*num_leaves - 1; j++){
+                if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
+                    found = 1;
+                }
+            }
+            if (found ==0){
+                return 0;
+                // We found a path
+                break;
+            }
+        }
+    }
+    return 1;
 }
 
 
