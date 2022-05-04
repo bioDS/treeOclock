@@ -58,7 +58,7 @@ rankedspr_path_mrca_cluster_diff.restype = TREE_LIST
 # C function to compute paths in rankedspr
 rankedspr_path_restricting_neighbourhood = lib.rankedspr_path_restricting_neighbourhood
 rankedspr_path_restricting_neighbourhood.argtypes = [POINTER(TREE), POINTER(TREE)]
-rankedspr_path_restricting_neighbourhood.restype = TREE_LIST
+rankedspr_path_restricting_neighbourhood.restype = c_int
 
 # C function to compute symmetric cluster differences (for testing)
 symmetric_cluster_diff = lib.symmetric_cluster_diff
@@ -69,6 +69,11 @@ symmetric_cluster_diff.restype = c_long
 spr_neighbourhood = lib.spr_neighbourhood
 spr_neighbourhood.argtypes = [POINTER(TREE)]
 spr_neighbourhood.restype = TREE_LIST
+
+# C function spr_neighbourhood (for testing purposes)
+hspr_neighbourhood = lib.hspr_neighbourhood
+hspr_neighbourhood.argtypes = [POINTER(TREE)]
+hspr_neighbourhood.restype = TREE_LIST
 
 # C function findpath_distance
 findpath_distance = lib.findpath_distance
