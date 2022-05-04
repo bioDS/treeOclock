@@ -71,6 +71,12 @@ spr_neighbourhood.argtypes = [POINTER(TREE)]
 spr_neighbourhood.restype = TREE_LIST
 
 # C function spr_neighbourhood (for testing purposes)
+all_spr_neighbourhood = lib.all_spr_neighbourhood
+all_spr_neighbourhood.argtypes = [POINTER(TREE)]
+all_spr_neighbourhood.restype = TREE_LIST
+
+
+# C function spr_neighbourhood (for testing purposes)
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]
 hspr_neighbourhood.restype = TREE_LIST
