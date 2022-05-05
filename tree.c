@@ -618,7 +618,9 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
     Queue* to_visit = queue_new();  
     queue_push_tail(to_visit, current_tree);
     long r=0; //rank of the lowest node that induces different clusters in current_tree and dest_tree.
+    long num_iterations = 0;
     while (queue_is_empty(to_visit) != 0){
+        num_iterations++;
         current_tree = queue_pop_head(to_visit);
         // Find the lowest node (at position r) for which current_tree and dest_tree are different
         for (long i = 0; i < 2*num_leaves - 1; i++){
@@ -655,9 +657,10 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
         for (int i = 0; i <2; i++){
             for (int j = 0; j < 2; j++){
                 neighbour_pointer = &neighbours.trees[index];
-                long child_moving = current_tree->tree[r].children[i];
+                int child_moving = i;
                 long new_sibling = dest_tree->tree[r].children[j];
                 if (new_sibling != child_moving){
+                    // printf("rank: %ld, child_moving: %d, new_sibling: %ld\n", r, child_moving, new_sibling);
                     Tree* neighbour_pointer;
                     neighbour_pointer = &neighbours.trees[index];
                     spr_move(neighbour_pointer, r, new_sibling, child_moving);
@@ -665,13 +668,13 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
                 }
             }
         }
-        // print neighbouring trees (for testing)
-        for (long i = 0; i < 5; i++){
-            for (long j = 0; j < 2*num_leaves-1; j++){
-                printf("children: %ld, %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1]);
-                printf("parent: %ld\n", neighbours.trees[i].tree[j].parent);
-            }
-        }
+        // // print neighbouring trees (for testing)
+        // for (long i = 0; i < 5; i++){
+        //     for (long j = 0; j < 2*num_leaves-1; j++){
+        //         printf("children: %ld, %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1]);
+        //         printf("parent: %ld\n", neighbours.trees[i].tree[j].parent);
+        //     }
+        // }
         // Set the number of neighbours
         neighbours.num_trees=index;
         // Now add neighbours to queue and check if we already reached destination tree.
@@ -681,13 +684,14 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
             queue_push_tail(to_visit, neighbour_pointer);
             // Check if we reached destination tree already
             int found = 0;
-            for (long j = 0; j < 2*num_leaves - 1; j++){
-                printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
-                if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
-                    found = 1;
-                }
-            }
+            // for (long j = 0; j < 2*num_leaves - 1; j++){
+            //     printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
+            //     if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
+            //         found = 1;
+            //     }
+            // }
             if (found ==0){
+                printf("number of iterations needed: %ld\n", num_iterations);
                 return 0;
                 // We found a path
             }
