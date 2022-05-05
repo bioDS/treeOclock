@@ -702,10 +702,12 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             }
             if (found ==0){
                 for(long i =0; i < num_leaves*num_iterations; i++){
-                    // printf("visited_at_distance[i]: %ld\n", visited_at_distance[i]);
                     if (visited_at_distance[i]!=0){
-                        printf("distance: %ld\n", i);
-                        output = i;
+                        if (visited_at_distance[i+1]!=0){ // not sure if this is correct
+                            output = i+1;
+                        } else{
+                            output = i;
+                        }
                         break;
                     }
                 }
