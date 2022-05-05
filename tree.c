@@ -589,6 +589,7 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
     long num_leaves = start_tree->num_leaves;
     // array containing at position i the number of trees in i-neighbourhood whose neighbours have already been added to the queue -- needed to derive the distance in the end.
     long* visited_at_distance = calloc(num_leaves * num_leaves, sizeof(long)); // not sure if this is correct
+    visited_at_distance[0] = 1;
     // Check starting_tree:
     // for (long i = 0; i < 2*num_leaves - 1; i++){
     //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
@@ -657,8 +658,9 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             for (int j = 0; j < 2; j++){
                 long child_moving = neighbours.trees[index].tree[r].children[i];
                 long new_sibling = dest_tree->tree[r].children[j];
+                long old_sibling = neighbours.trees[index].tree[r].children[1-i];
                 Tree* neighbour_pointer = &neighbours.trees[index];
-                if (new_sibling != child_moving){
+                if (new_sibling != child_moving && new_sibling != old_sibling){
                     spr_move(neighbour_pointer, r, new_sibling, i);
                     index++;
                 }
@@ -682,6 +684,8 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             visited_at_distance[distance-1]--;
         }
         visited_at_distance[distance]+=neighbours.num_trees;
+        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
+        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
 
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
@@ -698,8 +702,10 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             }
             if (found ==0){
                 for(long i =0; i < num_leaves*num_iterations; i++){
+                    // printf("visited_at_distance[i]: %ld\n", visited_at_distance[i]);
                     if (visited_at_distance[i]!=0){
                         printf("distance: %ld\n", i);
+                        output = i;
                         break;
                     }
                 }
