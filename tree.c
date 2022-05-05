@@ -580,12 +580,15 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
 }
 
 
-// CURRENTLY WE RETURN A 0 IF THE ALGORITHM FINISHED.
-// WE STILL NEED TO IMPLEMENT A DICT OR SOMETHING TO KEEP TRACK OF THE ACTUAL LENGTH OF A PATH
-int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
+// returns length of the path computed by tree search in neighbourhoods (BFS), restricting neighbourhoods to use a bottom up approach like FP, and only moves involving nodes of the currently considered cluster in dest_tree
+// more detailed description of this algorithm can be found in git repo rankedSPR_paper.
+long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
+    long output = 0; //length of the path that is being computed in this function
     // compute a path between start_tree and dest_tree (approximation for shortest path)
     // this approach uses tree search by only considering a few specific neighbours to the current tree
     long num_leaves = start_tree->num_leaves;
+    // array containing at position i the number of trees in i-neighbourhood whose neighbours have already been added to the queue -- needed to derive the distance in the end.
+    long* visited_at_distance = calloc(num_leaves * num_leaves, sizeof(long)); // not sure if this is correct
     // Check starting_tree:
     // for (long i = 0; i < 2*num_leaves - 1; i++){
     //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
@@ -619,6 +622,7 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
     queue_push_tail(to_visit, current_tree);
     long r=0; //rank of the lowest node that induces different clusters in current_tree and dest_tree.
     long num_iterations = 0;
+    long distance = 1;
     while (queue_is_empty(to_visit) != 0){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
@@ -630,45 +634,38 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
                 break;
             }
         }
-        // Initialise list of neighbours
+        // Initialise list of neighbours (copy current_tree to every position in the tree_list)
         Tree_List neighbours;
         neighbours.trees = malloc(5 * sizeof(Tree)); // We consider a max of 5 neighbouring trees (depending on tree shape)
         for (long i = 0; i < 5; i++){
             neighbours.trees[i].num_leaves = num_leaves;
-            neighbours.trees[i].tree = current_tree->tree;
-            for (long j = 0; j < 2*num_leaves-1; j++){
-                neighbours.trees[i].tree[j].children[0] = current_tree->tree[j].children[0]; // initially every neighbour is current_tree
-                neighbours.trees[i].tree[j].children[1] = current_tree->tree[j].children[1];
-                neighbours.trees[i].tree[j].parent = current_tree->tree[j].parent;
-            }
+            // neighbours.trees[i].tree = current_tree->tree;
+            neighbours.trees[i].tree = calloc(2*num_leaves - 1, sizeof(Node));
+            memcpy(neighbours.trees[i].tree, current_tree->tree, (2*num_leaves - 1)*sizeof(Node));
         }
         long index=0;
         // first neighbour : rank move
         long mrca_rank = mrca(current_tree, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]); //find currently considered mrca and check if the interval below it allows rank move
         if ((current_tree->tree[mrca_rank].children[0] != mrca_rank-1 &&
         current_tree->tree[mrca_rank].children[1] != mrca_rank-1) && mrca_rank != 1){
-            Tree* neighbour_pointer;
-            neighbour_pointer = &neighbours.trees[index];
+            Tree* neighbour_pointer = &neighbours.trees[index];
             rank_move(neighbour_pointer, mrca_rank);
             index++;
         }
         // next (up to four) neighbours: move current_tree children[i] to dest_tree children[j] (if possible)
-        Tree* neighbour_pointer;
         for (int i = 0; i <2; i++){
             for (int j = 0; j < 2; j++){
-                neighbour_pointer = &neighbours.trees[index];
-                int child_moving = i;
+                long child_moving = neighbours.trees[index].tree[r].children[i];
                 long new_sibling = dest_tree->tree[r].children[j];
+                Tree* neighbour_pointer = &neighbours.trees[index];
                 if (new_sibling != child_moving){
-                    // printf("rank: %ld, child_moving: %d, new_sibling: %ld\n", r, child_moving, new_sibling);
-                    Tree* neighbour_pointer;
-                    neighbour_pointer = &neighbours.trees[index];
-                    spr_move(neighbour_pointer, r, new_sibling, child_moving);
+                    spr_move(neighbour_pointer, r, new_sibling, i);
                     index++;
                 }
             }
         }
         // // print neighbouring trees (for testing)
+        // printf("neighbour trees:\n");
         // for (long i = 0; i < 5; i++){
         //     for (long j = 0; j < 2*num_leaves-1; j++){
         //         printf("children: %ld, %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1]);
@@ -677,28 +674,44 @@ int rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
         // }
         // Set the number of neighbours
         neighbours.num_trees=index;
+
+        // update visited_at_distance
+        if (visited_at_distance[distance-1] == 0){
+            distance++;
+        } else{
+            visited_at_distance[distance-1]--;
+        }
+        visited_at_distance[distance]+=neighbours.num_trees;
+
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
         for(int i = 0; i < neighbours.num_trees; i++){
-            neighbour_pointer = &neighbours.trees[i];
+            Tree *neighbour_pointer = &neighbours.trees[i];
             queue_push_tail(to_visit, neighbour_pointer);
             // Check if we reached destination tree already
             int found = 0;
-            // for (long j = 0; j < 2*num_leaves - 1; j++){
-            //     printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
-            //     if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
-            //         found = 1;
-            //     }
-            // }
+            for (long j = 0; j < 2*num_leaves - 1; j++){
+                // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
+                if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
+                    found = 1;
+                }
+            }
             if (found ==0){
-                printf("number of iterations needed: %ld\n", num_iterations);
-                return 0;
+                for(long i =0; i < num_leaves*num_iterations; i++){
+                    if (visited_at_distance[i]!=0){
+                        printf("distance: %ld\n", i);
+                        break;
+                    }
+                }
+                // printf("number of iterations needed: %ld\n", num_iterations);
+                return output;
                 // We found a path
             }
-            printf("length of queue: %ld\n", queue_get_length(to_visit));
+            // printf("length of queue: %ld\n", queue_get_length(to_visit));
         }
     }
-    return 1;
+    // If we cannot find destination tree, return -1
+    return -1;
 }
 
 
