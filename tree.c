@@ -173,7 +173,7 @@ int rank_move(Tree * input_tree, long rank_in_list){
         return 1;
     } else{
         if (input_tree->tree[rank_in_list].parent == rank_in_list + 1){
-            printf("Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank_in_list, rank_in_list + 1);
+            printf("error\n");            printf("Error. No rank move possible on tree %s. The interval [%ld,%ld] is an edge!\n", tree_to_string(input_tree), rank_in_list, rank_in_list + 1);
         } else{
             // update parents of nodes that swap ranks
             long upper_parent;
@@ -595,14 +595,27 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
     //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
     // }
 
-    // Initialise output path
-    Tree_List path; // output: list of trees on FP path
-    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
-    path.trees = malloc(path.num_trees * sizeof(Tree));
-    for (long i = 0; i < path.num_trees; i++){
-        path.trees[i].num_leaves = num_leaves;
-        path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    // Check if start_tree = dest_tree (if so, we output distance 0)
+    int found = 0;
+    for (long j = 0; j < 2*num_leaves - 1; j++){
+        // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
+        if (start_tree->tree[j].parent != dest_tree->tree[j].parent){
+            found = 1;
+        }
     }
+    if(found ==0){
+        return(0);
+    }
+
+    // // Initialise output path
+    // Tree_List path; // output: list of trees on FP path
+    // path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
+    // path.trees = malloc(path.num_trees * sizeof(Tree));
+    // for (long i = 0; i < path.num_trees; i++){
+    //     path.trees[i].num_leaves = num_leaves;
+    //     path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    // }
+
     // current path index (i.e. current path length)
     long index = 0;
 
@@ -613,10 +626,10 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         current_tree->tree[i] = start_tree->tree[i];
     }
-    // Add the first tree to output path
-    for (long i = 0; i < 2 * num_leaves - 1; i++){
-        path.trees[index].tree[i] = current_tree->tree[i];
-    }
+    // // Add the first tree to output path
+    // for (long i = 0; i < 2 * num_leaves - 1; i++){
+    //     path.trees[index].tree[i] = current_tree->tree[i];
+    // }
     index+=1;
 
     Queue* to_visit = queue_new();  
@@ -629,8 +642,8 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
         current_tree = queue_pop_head(to_visit);
         // Find the lowest node (at position r) for which current_tree and dest_tree are different
         for (long i = 0; i < 2*num_leaves - 1; i++){
-            if (!((current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1])||
-            (current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
+            if ((!(current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1]) &&
+            !(current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
                 r = i;
                 break;
             }
@@ -647,13 +660,15 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
         long index=0;
         // first neighbour : rank move
         long mrca_rank = mrca(current_tree, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]); //find currently considered mrca and check if the interval below it allows rank move
+        // printf("current tree: %s, mrca: %ld, nodes: %ld, %ld\n", tree_to_string(current_tree), mrca_rank, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]);
         if ((current_tree->tree[mrca_rank].children[0] != mrca_rank-1 &&
         current_tree->tree[mrca_rank].children[1] != mrca_rank-1) && mrca_rank != 1){
             Tree* neighbour_pointer = &neighbours.trees[index];
-            rank_move(neighbour_pointer, mrca_rank);
+            rank_move(neighbour_pointer, mrca_rank-1);
             index++;
         }
         // next (up to four) neighbours: move current_tree children[i] to dest_tree children[j] (if possible)
+        //TODO: there seems to be a problem with computing correct neighbours here.
         for (int i = 0; i <2; i++){
             for (int j = 0; j < 2; j++){
                 long child_moving = neighbours.trees[index].tree[r].children[i];
@@ -678,12 +693,16 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
         neighbours.num_trees=index;
 
         // update visited_at_distance
+        // printf("before update:\n");
+        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
+        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
         if (visited_at_distance[distance-1] == 0){
             distance++;
-        } else{
-            visited_at_distance[distance-1]--;
         }
+        // not sure about this bit
+        visited_at_distance[distance-1]--;
         visited_at_distance[distance]+=neighbours.num_trees;
+        // printf("after update:\n");
         // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
         // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
 
@@ -703,15 +722,14 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             if (found ==0){
                 for(long i =0; i < num_leaves*num_iterations; i++){
                     if (visited_at_distance[i]!=0){
-                        if (visited_at_distance[i+1]!=0){ // not sure if this is correct
-                            output = i+1;
-                        } else{
-                            output = i;
+                        while(visited_at_distance[i] != 0){
+                            // printf("i: %ld\n", i);
+                            i++;
                         }
+                        output = i-1;
                         break;
                     }
                 }
-                // printf("number of iterations needed: %ld\n", num_iterations);
                 return output;
                 // We found a path
             }
