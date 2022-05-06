@@ -666,6 +666,16 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             Tree* neighbour_pointer = &neighbours.trees[index];
             rank_move(neighbour_pointer, mrca_rank-1);
             index++;
+        } else if (mrca_rank != 1){
+            // alternatively, we make an NNI move to decrease the rank of the mrca.
+            // note that this tree might be the same as one of the ones added in the next for loop as SPR neighbours.
+            // this has no effect on the computed distance, just increases runtime, but we are fine with that.
+            Tree* neighbour_pointer = &neighbours.trees[index];
+            nni_move(neighbour_pointer, mrca_rank-1, 0);
+            if (mrca(neighbour_pointer, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]) == mrca_rank){ //do exactly the other NNI move, if the first one did not decrease the mrca.
+                nni_move(neighbour_pointer, mrca_rank-1, 1);
+            }
+            index++;
         }
         // next (up to four) neighbours: move current_tree children[i] to dest_tree children[j] (if possible)
         //TODO: there seems to be a problem with computing correct neighbours here.
@@ -685,10 +695,10 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
         // printf("neighbour trees:\n");
         // for (long i = 0; i < 5; i++){
         //     for (long j = 0; j < 2*num_leaves-1; j++){
-        //         printf("children: %ld, %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1]);
-        //         printf("parent: %ld\n", neighbours.trees[i].tree[j].parent);
+        //         printf("children: %ld, %ld, parent: %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1], neighbours.trees[i].tree[j].parent);
         //     }
         // }
+
         // Set the number of neighbours
         neighbours.num_trees=index;
 
