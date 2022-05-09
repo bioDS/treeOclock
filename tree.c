@@ -678,7 +678,6 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
             index++;
         }
         // next (up to four) neighbours: move current_tree children[i] to dest_tree children[j] (if possible)
-        //TODO: there seems to be a problem with computing correct neighbours here.
         for (int i = 0; i <2; i++){
             for (int j = 0; j < 2; j++){
                 long child_moving = neighbours.trees[index].tree[r].children[i];
