@@ -750,6 +750,209 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
 }
 
 
+
+// Compute symmetric difference of clusters induced by nodes of rank k in tree1 and tree2
+long symm_cluster_diff(Tree* tree1, Tree* tree2, long k){
+    long num_leaves = tree1->num_leaves;
+    // find clusters induced by node of rank k in both tree1 and tree2
+    // Note: getting cluster matrix is copy&paste from tree_to_string function. We only need one column of this matrix here
+    // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
+    // first: clusters_t1 for tree1
+    long ** clusters_t1 = malloc((num_leaves - 1) * sizeof(long *));
+    for (long i = 0; i < num_leaves - 1; i++){
+        clusters_t1[i] = malloc((num_leaves) * sizeof(long));
+    }
+
+    for (long i = 0; i < num_leaves ; i++){
+        for (long j = 0; j < num_leaves - 1; j++){
+            clusters_t1[j][i] = 0; //initialise all entries to be 0
+        }
+        long j = i;
+        while (tree1->tree[j].parent != -1){
+            j = tree1->tree[j].parent;
+            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
+            clusters_t1[j - num_leaves][i] = 1;
+        }
+        clusters_t1[num_leaves - 2][i] = 1;
+    }
+    // same thing for tree2
+    long ** clusters_t2 = malloc((num_leaves - 1) * sizeof(long *));
+    for (long i = 0; i < num_leaves - 1; i++){
+        clusters_t2[i] = malloc((num_leaves) * sizeof(long));
+    }
+
+    for (long i = 0; i < num_leaves ; i++){
+        for (long j = 0; j < num_leaves - 1; j++){
+            clusters_t2[j][i] = 0; //initialise all entries to be 0
+        }
+        long j = i;
+        while (tree2->tree[j].parent != -1){
+            j = tree2->tree[j].parent;
+            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
+            clusters_t2[j - num_leaves][i] = 1;
+        }
+        clusters_t2[num_leaves - 2][i] = 1;
+    }
+
+    // now count the number of entries that are a 1 in either cluster_t1 or cluster_t2 in row k-num_leaves
+    long output = 0;
+    for (long i = 0; i < num_leaves; i++){
+        if (clusters_t1[k-num_leaves][i]+clusters_t2[k-num_leaves][i]==1){
+            output++;
+        }
+    }
+    for (long i = 0; i < num_leaves - 1; i++){
+        free(clusters_t1[i]);
+        free(clusters_t2[i]);
+    }
+    free(clusters_t1);
+    free(clusters_t2);
+    return(output);
+}
+
+
+// returns length of the path computed by tree search in neighbourhoods (BFS), restricting neighbourhoods to use a top down approach, always taking the neighbour with minimum size of symmetric difference of current cluster
+// more detailed description of this algorithm can be found in git repo rankedSPR_paper
+long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
+    // long output = 0; //length of the path that is being computed in this function
+    // compute a path between start_tree and dest_tree (approximation for shortest path)
+    // this approach uses tree search by only considering a few specific neighbours to the current tree
+    long output = 0; //length of the path that is being computed in this function
+    // compute a path between start_tree and dest_tree (approximation for shortest path)
+    // this approach uses tree search by only considering a few specific neighbours to the current tree
+    long num_leaves = start_tree->num_leaves;
+    // array containing at position i the number of trees in i-neighbourhood whose neighbours have already been added to the queue -- needed to derive the distance in the end.
+    long* visited_at_distance = calloc(num_leaves * num_leaves, sizeof(long)); // not sure if this is correct
+    visited_at_distance[0] = 1;
+
+    // Check starting_tree:
+    // for (long i = 0; i < 2*num_leaves - 1; i++){
+    //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
+    // }
+
+    // Check if start_tree = dest_tree (if so, we output distance 0)
+    int found = 0;
+    for (long j = 0; j < 2*num_leaves - 1; j++){
+        // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
+        if (start_tree->tree[j].parent != dest_tree->tree[j].parent){
+            found = 1;
+        }
+    }
+    if(found ==0){
+        return(0);
+    }
+
+    // // Initialise output path
+    // Tree_List path; // output: list of trees on FP path
+    // path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
+    // path.trees = malloc(path.num_trees * sizeof(Tree));
+    // for (long i = 0; i < path.num_trees; i++){
+    //     path.trees[i].num_leaves = num_leaves;
+    //     path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    // }
+
+    // current path index (i.e. current path length)
+    long index = 0;
+
+    //Deep copy start tree to get new tree to be added to path iteratively
+    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = start_tree->tree[i];
+    }
+    // // Add the first tree to output path
+    // for (long i = 0; i < 2 * num_leaves - 1; i++){
+    //     path.trees[index].tree[i] = current_tree->tree[i];
+    // }
+    index+=1;
+
+    Queue* to_visit = queue_new();  
+    queue_push_tail(to_visit, current_tree);
+    long r=0; //rank of the lowest node that induces different clusters in current_tree and dest_tree.
+    long num_iterations = 0;
+    long distance = 1;
+    while (queue_is_empty(to_visit) != 0){
+        num_iterations++;
+        current_tree = queue_pop_head(to_visit);
+        // Find the highest node (at position r) for which current_tree and dest_tree are different
+        for (long i = 2*num_leaves-3; i >= num_leaves; i--){
+            if ((!(current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1]) &&
+            !(current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
+                r = i;
+                break;
+            }
+        }
+        // Initialise list of neighbours (copy current_tree to every position in the tree_list)
+        Tree_List neighbours = spr_neighbourhood(current_tree);
+        long min_symm_diff = num_leaves;
+        for (int i = 0; i < neighbours.num_trees; i++){
+            long symm_diff = symm_cluster_diff(&neighbours.trees[i], current_tree, r);
+            if (symm_diff < min_symm_diff){
+                min_symm_diff = symm_diff;
+            }
+        }
+        // // print neighbouring trees (for testing)
+        // printf("neighbour trees:\n");
+        // for (long i = 0; i < 5; i++){
+        //     for (long j = 0; j < 2*num_leaves-1; j++){
+        //         printf("children: %ld, %ld, parent: %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1], neighbours.trees[i].tree[j].parent);
+        //     }
+        // }
+
+        // update visited_at_distance
+        // printf("before update:\n");
+        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
+        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
+        if (visited_at_distance[distance-1] == 0){
+            distance++;
+        }
+        // not sure about this bit
+        visited_at_distance[distance-1]--;
+        visited_at_distance[distance]+=neighbours.num_trees;
+        // printf("after update:\n");
+        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
+        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
+
+        // Now add neighbours to queue and check if we already reached destination tree.
+        // If we reached it, we can stop.
+        for(int i = 0; i < neighbours.num_trees; i++){
+            Tree *neighbour_pointer = &neighbours.trees[i];
+            long symm_diff = symm_cluster_diff(&neighbours.trees[i], current_tree, r);
+            if (symm_diff == min_symm_diff){
+                queue_push_tail(to_visit, neighbour_pointer);
+            }
+            // Check if we reached destination tree already
+            int found = 0;
+            // printf("neighbours:\n");
+            for (long j = 0; j < 2*num_leaves - 1; j++){
+                // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
+                if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
+                    found = 1;
+                }
+            }
+            if (found ==0){
+                for(long i =0; i < num_leaves*num_iterations; i++){
+                    if (visited_at_distance[i]!=0){
+                        while(visited_at_distance[i] != 0){
+                            // printf("i: %ld\n", i);
+                            i++;
+                        }
+                        output = i-1;
+                        break;
+                    }
+                }
+                return output;
+                // We found a path
+            }
+            // printf("length of queue: %ld\n", queue_get_length(to_visit));
+        }
+    }
+    // If we cannot find destination tree, return -1
+    return -1;
+}
+
+
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 // This function only works for ranked trees
 Path findpath(Tree *start_tree, Tree *dest_tree){

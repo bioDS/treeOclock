@@ -75,11 +75,20 @@ all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE)]
 all_spr_neighbourhood.restype = TREE_LIST
 
-
 # C function spr_neighbourhood (for testing purposes)
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]
 hspr_neighbourhood.restype = TREE_LIST
+
+# C function calculating size of symmetric cluster difference
+symm_cluster_diff = lib.symm_cluster_diff
+symm_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
+symm_cluster_diff.restype = c_long
+
+# C function approximating shortest path in top-down fashion
+rankedspr_path_top_down_symm_diff = lib.rankedspr_path_top_down_symm_diff
+rankedspr_path_top_down_symm_diff.argtypes = [POINTER(TREE), POINTER(TREE)]
+rankedspr_path_top_down_symm_diff.restype = c_long
 
 # C function findpath_distance
 findpath_distance = lib.findpath_distance
