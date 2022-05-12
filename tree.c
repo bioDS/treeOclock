@@ -876,7 +876,7 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
         // Find the highest node (at position r) for which current_tree and dest_tree are different
-        for (long i = 2*num_leaves-3; i >= num_leaves; i--){
+        for (long i = 2*num_leaves-2; i >= num_leaves; i--){
             if ((!(current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1]) &&
             !(current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
                 r = i;
@@ -892,15 +892,16 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
                 min_symm_diff = symm_diff;
             }
         }
+        // printf("number of neighbours: %ld\n", neighbours.num_trees);
         // // print neighbouring trees (for testing)
-        // printf("neighbour trees:\n");
-        // for (long i = 0; i < 5; i++){
+        // printf("num_iterations: %ld, neighbour trees:\n", num_iterations);
+        // for (long i = 0; i < neighbours.num_trees; i++){
         //     for (long j = 0; j < 2*num_leaves-1; j++){
         //         printf("children: %ld, %ld, parent: %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1], neighbours.trees[i].tree[j].parent);
         //     }
         // }
 
-        // update visited_at_distance
+        // // update visited_at_distance
         // printf("before update:\n");
         // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
         // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
@@ -935,6 +936,7 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
                 for(long i =0; i < num_leaves*num_iterations; i++){
                     if (visited_at_distance[i]!=0){
                         while(visited_at_distance[i] != 0){
+                            // printf("visited at distance %ld: %ld\n", i, visited_at_distance[i]);
                             // printf("i: %ld\n", i);
                             i++;
                         }
