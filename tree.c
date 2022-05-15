@@ -896,7 +896,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
         }
         if (min_symm_diff == symm_cluster_diff(current_tree, dest_tree, r)){
             printf("No improvement in symmetric cluster difference possible for any neighbours of %s\n", tree_to_string(current_tree));
-            return(-1);
         }
         // printf("number of neighbours: %ld\n", neighbours.num_trees);
         // // print neighbouring trees (for testing)
