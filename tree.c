@@ -796,7 +796,11 @@ long symm_cluster_diff(Tree* tree1, Tree* tree2, long k){
 
     // now count the number of entries that are a 1 in either cluster_t1 or cluster_t2 in row k-num_leaves
     long output = 0;
+    // printf("clusters for trees:\n, %s, %s\n", tree_to_string(tree1), tree_to_string(tree2));
     for (long i = 0; i < num_leaves; i++){
+        // printf("i: %ld, k:%ld\n", i, k);
+        // printf("clusters_t1[k-num_leaves][i]: %ld\n",clusters_t1[k-num_leaves][i]);
+        // printf("clusters_t2[k-num_leaves][i]: %ld\n",clusters_t2[k-num_leaves][i]);
         if (clusters_t1[k-num_leaves][i]+clusters_t2[k-num_leaves][i]==1){
             output++;
         }
@@ -875,22 +879,24 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     while (queue_is_empty(to_visit) != 0){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
-        // Find the highest node (at position r) for which current_tree and dest_tree are different
-        for (long i = 2*num_leaves-2; i >= num_leaves; i--){
-            if ((!(current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1]==dest_tree->tree[i].children[1]) &&
-            !(current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
+        // Find the highest node (at position r) for which clusters induced by current_tree and dest_tree are different
+        for (long i = 2*num_leaves-3; i >= num_leaves; i--){
+            if (symm_cluster_diff(current_tree, dest_tree, i) > 0){
                 r = i;
                 break;
             }
         }
-        // Initialise list of neighbours (copy current_tree to every position in the tree_list)
         Tree_List neighbours = spr_neighbourhood(current_tree);
-        long min_symm_diff = num_leaves;
+        long min_symm_diff = symm_cluster_diff(current_tree, dest_tree, r);
         for (int i = 0; i < neighbours.num_trees; i++){
-            long symm_diff = symm_cluster_diff(&neighbours.trees[i], current_tree, r);
+            long symm_diff = symm_cluster_diff(&neighbours.trees[i], dest_tree, r);
             if (symm_diff < min_symm_diff){
                 min_symm_diff = symm_diff;
             }
+        }
+        if (min_symm_diff == symm_cluster_diff(current_tree, dest_tree, r)){
+            printf("No improvement in symmetric cluster difference possible for any neighbours of %s\n", tree_to_string(current_tree));
+            return(-1);
         }
         // printf("number of neighbours: %ld\n", neighbours.num_trees);
         // // print neighbouring trees (for testing)
