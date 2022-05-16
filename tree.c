@@ -879,6 +879,7 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     while (queue_is_empty(to_visit) != 0){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
+        // printf("current tree: %s\n", tree_to_string(current_tree));
         // Find the highest node (at position r) for which clusters induced by current_tree and dest_tree are different
         for (long i = 2*num_leaves-3; i >= num_leaves; i--){
             if (symm_cluster_diff(current_tree, dest_tree, i) > 0){
@@ -893,6 +894,7 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
             if (symm_diff < min_symm_diff){
                 min_symm_diff = symm_diff;
             }
+            // printf("neighbour: %s, diff: %ld\n", tree_to_string(&neighbours.trees[i]), symm_diff);
         }
         if (min_symm_diff == symm_cluster_diff(current_tree, dest_tree, r)){
             printf("No improvement in symmetric cluster difference possible for any neighbours of %s\n", tree_to_string(current_tree));
@@ -922,11 +924,13 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
 
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
+        // printf("min symm diff: %ld\n", min_symm_diff);
+        // printf("corresponding trees:\n");
         for(int i = 0; i < neighbours.num_trees; i++){
-            Tree *neighbour_pointer = &neighbours.trees[i];
-            long symm_diff = symm_cluster_diff(&neighbours.trees[i], current_tree, r);
+            long symm_diff = symm_cluster_diff(&neighbours.trees[i], dest_tree, r);
             if (symm_diff == min_symm_diff){
-                queue_push_tail(to_visit, neighbour_pointer);
+                // printf("%s\n", tree_to_string(&neighbours.trees[i]));
+                queue_push_tail(to_visit, &neighbours.trees[i]);
             }
             // Check if we reached destination tree already
             int found = 0;
