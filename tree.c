@@ -875,11 +875,18 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     queue_push_tail(to_visit, current_tree);
     long r=0; //rank of the lowest node that induces different clusters in current_tree and dest_tree.
     long num_iterations = 0;
-    long distance = 1;
+    long distance = 1; // highest entry in visited_at_distance that is not 0
     while (queue_is_empty(to_visit) != 0){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
+        // printf("d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
+        if (visited_at_distance[distance-1] == 0){
+            distance++;
+        }
+        visited_at_distance[distance-1]--; //one less tree with distance-1 in queue
+        // printf("afterwards: d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
         // printf("current tree: %s\n", tree_to_string(current_tree));
+        // printf("current distance: %ld\n", distance);
         // Find the highest node (at position r) for which clusters induced by current_tree and dest_tree are different
         for (long i = 2*num_leaves-3; i >= num_leaves; i--){
             if (symm_cluster_diff(current_tree, dest_tree, i) > 0){
@@ -908,20 +915,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
         //     }
         // }
 
-        // // update visited_at_distance
-        // printf("before update:\n");
-        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
-        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
-        if (visited_at_distance[distance-1] == 0){
-            distance++;
-        }
-        // not sure about this bit
-        visited_at_distance[distance-1]--;
-        visited_at_distance[distance]+=neighbours.num_trees;
-        // printf("after update:\n");
-        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
-        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
-
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
         // printf("min symm diff: %ld\n", min_symm_diff);
@@ -931,6 +924,7 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
             if (symm_diff == min_symm_diff){
                 // printf("%s\n", tree_to_string(&neighbours.trees[i]));
                 queue_push_tail(to_visit, &neighbours.trees[i]);
+                visited_at_distance[distance]++; // add one for every tree that is added to queue
             }
             // Check if we reached destination tree already
             int found = 0;
@@ -941,17 +935,12 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
                     found = 1;
                 }
             }
-            if (found ==0){
-                for(long i =0; i < num_leaves*num_iterations; i++){
-                    if (visited_at_distance[i]!=0){
-                        while(visited_at_distance[i] != 0){
-                            // printf("visited at distance %ld: %ld\n", i, visited_at_distance[i]);
-                            // printf("i: %ld\n", i);
-                            i++;
-                        }
-                        output = i-1;
-                        break;
-                    }
+            if (found == 0){
+                // printf("found. d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
+                if (visited_at_distance[distance]!=0){
+                    output = distance;
+                }else{
+                    output = distance-1;
                 }
                 return output;
                 // We found a path
