@@ -582,7 +582,8 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
 
 // returns length of the path computed by tree search in neighbourhoods (BFS), restricting neighbourhoods to use a bottom up approach like FP, and only moves involving nodes of the currently considered cluster in dest_tree
 // more detailed description of this algorithm can be found in git repo rankedSPR_paper.
-long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree){
+// uses RSPR space if hspr = 1, otherwise HSPR space (in which case no rank move is possible)
+long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree, int hspr){
     long output = 0; //length of the path that is being computed in this function
     // compute a path between start_tree and dest_tree (approximation for shortest path)
     // this approach uses tree search by only considering a few specific neighbours to the current tree
@@ -661,12 +662,12 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree)
         // first neighbour : rank move
         long mrca_rank = mrca(current_tree, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]); //find currently considered mrca and check if the interval below it allows rank move
         // printf("current tree: %s, mrca: %ld, nodes: %ld, %ld\n", tree_to_string(current_tree), mrca_rank, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]);
-        if ((current_tree->tree[mrca_rank].children[0] != mrca_rank-1 &&
+        if (hspr == 1 && (current_tree->tree[mrca_rank].children[0] != mrca_rank-1 &&
         current_tree->tree[mrca_rank].children[1] != mrca_rank-1) && mrca_rank != 1){
             Tree* neighbour_pointer = &neighbours.trees[index];
             rank_move(neighbour_pointer, mrca_rank-1);
             index++;
-        } else if (mrca_rank != 1){
+        } else if (mrca_rank == 1){
             // alternatively, we make an NNI move to decrease the rank of the mrca.
             // note that this tree might be the same as one of the ones added in the next for loop as SPR neighbours.
             // this has no effect on the computed distance, just increases runtime, but we are fine with that.
