@@ -522,7 +522,7 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree){
 }
 
 
-Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
+Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
     // compute a path between start_tree and dest_tree (approximation for shortest path)
     // this approach uses tree search by optimising the sum of mrca differences
     long num_leaves = start_tree->num_leaves;
@@ -554,7 +554,7 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree){
     long mrca_diff = mrca_differences(current_tree, dest_tree);
     while (mrca_diff > 0){
         // printf("current tree: %s\n", tree_to_string(current_tree));
-        Tree_List neighbours = spr_neighbourhood(current_tree);
+        Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
