@@ -94,6 +94,18 @@ char* tree_to_string(Tree * input_tree){
 }
 
 
+// Check whether two trees have the same (ranked) tree topology -- return 0 if this is the case, 1 otherwise
+int same_topology(Tree* tree1, Tree* tree2){
+    long num_leaves = tree1->num_leaves;
+    for(long i=num_leaves; i < 2 * num_leaves - 1; i++){
+        if (tree1->tree[i].parent != tree2->tree[i].parent){
+            return(1);
+        }
+    }
+    return(0);
+}
+
+
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){

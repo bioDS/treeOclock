@@ -40,6 +40,11 @@ spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
 
+# C function same_topology (for testing purposes)
+same_topology = lib.same_topology
+same_topology.argtypes = [POINTER(TREE), POINTER(TREE)]
+same_topology.restype = c_int
+
 # C function to compute sum of mrca ranks (for testing)
 mrca_differences = lib.mrca_differences
 mrca_differences.argtypes = [POINTER(TREE), POINTER(TREE)]
