@@ -80,6 +80,11 @@ all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE)]
 all_spr_neighbourhood.restype = TREE_LIST
 
+# C function all_rank_neighbours
+all_rank_neighbours = lib.all_rank_neighbours
+all_rank_neighbours.argtypes = [POINTER(TREE)]
+all_rank_neighbours.restype = TREE_LIST
+
 # C function spr_neighbourhood (for testing purposes)
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]

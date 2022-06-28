@@ -377,6 +377,49 @@ Tree_List hspr_neighbourhood(Tree* input_tree){
 }
 
 
+Tree_List all_rank_neighbours(Tree* input_tree){
+    long num_leaves = input_tree->num_leaves;
+
+    //Initialise neighbouring trees
+    Tree * neighbour = malloc(sizeof(Node*) + 3 * sizeof(long));
+    neighbour->num_leaves = num_leaves;
+    neighbour->tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+    // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        neighbour->tree[i] = input_tree->tree[i];
+    }
+
+    // Initialise list of neighbours
+    Tree_List neighbour_list; // output: list of trees on FP path
+    neighbour_list.num_trees = 2 * num_leaves * (num_leaves - 1); //max number of neighbours (quadratic in number of ranks + at most linear number of rank moves)
+    neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
+    for (long i = 0; i < neighbour_list.num_trees; i++){
+        neighbour_list.trees[i].num_leaves = num_leaves;
+        neighbour_list.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    long index=0; //count number of rank neighbours we already found
+
+    // Fill neighbour_list with rank neighbours
+    for(long i=num_leaves; i < 2*num_leaves-2; i++){
+        if(input_tree->tree[i].parent != i+1){
+            rank_move(neighbour, i);
+            // Add neighbour to neighbour_list:
+            for (long j = 0; j < 2 * num_leaves - 1; j++){
+                neighbour_list.trees[index].tree[j] = neighbour->tree[j];
+            }
+            index++;
+            // always reset neighbour to be input_tree after every move
+            for (long j = 0; j < 2 * num_leaves - 1; j++){
+                neighbour->tree[j] = input_tree->tree[j];
+            }
+        }
+    }
+    neighbour_list.num_trees = index;
+    free(neighbour);
+    return(neighbour_list);
+}
+
+
 long mrca_differences(Tree* current_tree, Tree* dest_tree){
     // Compute differences of ranks of mrca's of all cluster of dest_tree btw current_tree and dest_tree
     // Also add ranks of parent of leaves
