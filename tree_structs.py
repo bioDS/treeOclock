@@ -85,6 +85,11 @@ all_rank_neighbours = lib.all_rank_neighbours
 all_rank_neighbours.argtypes = [POINTER(TREE)]
 all_rank_neighbours.restype = TREE_LIST
 
+# C function all_rank_neighbours
+shortest_rank_path = lib.shortest_rank_path
+shortest_rank_path.argtypes = [POINTER(TREE), POINTER(TREE)]
+shortest_rank_path.restype = c_long
+
 # C function spr_neighbourhood (for testing purposes)
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]

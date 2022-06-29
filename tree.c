@@ -240,6 +240,24 @@ long mrca(Tree * input_tree, long node1, long node2){
     return rank1;
 }
 
+// compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
+long shortest_rank_path(Tree* tree1, Tree* tree2){
+    long num_leaves = tree1->num_leaves;
+    long path_length = 0;
+    for(int i = num_leaves; i < 2 * num_leaves - 1; i++){
+        if (!((tree1->tree[i].children[0] == tree2->tree[i].children[0] && tree1->tree[i].children[1] == tree2->tree[i].children[1])||
+        (tree1->tree[i].children[0] == tree2->tree[i].children[1] && tree1->tree[i].children[1] == tree2->tree[i].children[0]))){
+            long current_mrca = mrca(tree1, tree2->tree[i].children[0], tree2->tree[i].children[1]);
+            while(current_mrca != i){
+                rank_move(tree1, current_mrca-1);
+                current_mrca--;
+                path_length++;
+            }
+        }
+    }
+    return path_length;
+}
+
 
 // Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
 int move_up(Tree * itree, long i, long k){
