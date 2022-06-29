@@ -243,13 +243,21 @@ long mrca(Tree * input_tree, long node1, long node2){
 // compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
 long shortest_rank_path(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
+    // Deep copy tree1 to perform moves on that tree
+     Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = tree1->tree[i];
+    }
+
     long path_length = 0;
     for(int i = num_leaves; i < 2 * num_leaves - 1; i++){
-        if (!((tree1->tree[i].children[0] == tree2->tree[i].children[0] && tree1->tree[i].children[1] == tree2->tree[i].children[1])||
-        (tree1->tree[i].children[0] == tree2->tree[i].children[1] && tree1->tree[i].children[1] == tree2->tree[i].children[0]))){
-            long current_mrca = mrca(tree1, tree2->tree[i].children[0], tree2->tree[i].children[1]);
+        if (!((current_tree->tree[i].children[0] == tree2->tree[i].children[0] && current_tree->tree[i].children[1] == tree2->tree[i].children[1])||
+        (current_tree->tree[i].children[0] == tree2->tree[i].children[1] && current_tree->tree[i].children[1] == tree2->tree[i].children[0]))){
+            long current_mrca = mrca(current_tree, tree2->tree[i].children[0], tree2->tree[i].children[1]);
             while(current_mrca != i){
-                rank_move(tree1, current_mrca-1);
+                rank_move(current_tree, current_mrca-1);
                 current_mrca--;
                 path_length++;
             }
