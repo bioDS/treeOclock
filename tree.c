@@ -21,20 +21,28 @@ int get_num_digits(int integer){
 }
 
 
-// Return tree as string in cluster format -- for testing purposes. Currently doesn't work
+// Return tree as string in cluster format -- for testing purposes
 char* tree_to_string(Tree * input_tree){
     if (input_tree->tree == NULL){
         printf("Error. Can't write tree. Given tree doesn't exist.\n");
         return(NULL);
     } else{
         long num_leaves = input_tree->num_leaves;
-        int num_digits_n = get_num_digits(input_tree->num_leaves); // number of digits of the int num_leaves
+        //Deep copy start tree to get tree that we can manipulate
+        Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+        current_tree->num_leaves = num_leaves;
+        current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+        for (long i = 0; i < 2 * num_leaves - 1; i++){
+            current_tree->tree[i] = input_tree->tree[i];
+        }
+
+        int num_digits_n = get_num_digits(current_tree->num_leaves); // number of digits of the int num_leaves
         long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
         char *tree_str = malloc(2 * max_str_length * sizeof(char));
 
         // // Check if input tree is 'correct'
         // for (int i = 0; i < 2 * num_leaves - 1; i++){
-        //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, input_tree->tree[i].parent, input_tree->tree[i].children[0], input_tree->tree[i].children[1]);
+        //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, current_tree->tree[i].parent, current_tree->tree[i].children[0], current_tree->tree[i].children[1]);
         // }
 
         // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
@@ -48,8 +56,8 @@ char* tree_to_string(Tree * input_tree){
                 clusters[j][i] = 0; //initialise all entries to be 0
             }
             long j = i;
-            while (input_tree->tree[j].parent != -1){
-                j = input_tree->tree[j].parent;
+            while (current_tree->tree[j].parent != -1){
+                j = current_tree->tree[j].parent;
                 // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
                 clusters[j - num_leaves][i] = 1;
             }
@@ -72,9 +80,9 @@ char* tree_to_string(Tree * input_tree){
             strcat(tree_str, "}:"); // end of cluster, next we add time
 
             // retrieve the time of the current node (i.e. cluster) as string/ char*
-            long num_digits_time = get_num_digits(input_tree->tree[i+num_leaves].time);
+            long num_digits_time = get_num_digits(current_tree->tree[i+num_leaves].time);
             char time_str[num_digits_time + 1];
-            sprintf(time_str, "%ld", input_tree->tree[i+num_leaves].time);
+            sprintf(time_str, "%ld", current_tree->tree[i+num_leaves].time);
             strcat(tree_str, time_str);
 
             // beginning of next cluster
@@ -1124,6 +1132,8 @@ Tree_List rankedspr_path_bottom_up_hspr(Tree *start_tree, Tree *dest_tree){
     free(current_tree);
     return(path);
 }
+
+
 // Compute approximated distance using the same approach as above (rankedspr_path_bottom_up_hspr)
 long rankedspr_path_bottom_up_hspr_dist(Tree *start_tree, Tree *dest_tree){
     long num_leaves = start_tree->num_leaves;
