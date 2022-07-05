@@ -1037,6 +1037,75 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
 }
 
 
+// Create a path by using a bottom-up approach in RSPR/HSPR, only using HSPR moves
+Tree_List rankedspr_path_bottom_up_hspr(Tree *start_tree, Tree *dest_tree){
+    long num_leaves = start_tree->num_leaves;
+
+    // Initialise output path
+    Tree_List path; // output: list of trees on output path
+    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of HSPR is less than quadratic
+    path.trees = malloc(path.num_trees * sizeof(Tree));
+    for (long i = 0; i < path.num_trees; i++){
+        path.trees[i].num_leaves = num_leaves;
+        path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+
+    //Deep copy start tree to get new tree to be added to path iteratively
+    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = start_tree->tree[i];
+    }
+
+    // Add the first tree to output path
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        path.trees[0].tree[i] = current_tree->tree[i];
+    }
+
+    long index = 0; // index of the currently last tree on output path
+
+    for(long i = num_leaves; i < 2*num_leaves - 1; i++){
+        long current_child1 = current_tree->tree[i].children[0];
+        long current_child2 = current_tree->tree[i].children[1];
+        if((current_child1 == dest_tree->tree[i].children[0] && current_child2 == dest_tree->tree[i].children[1]) || (current_child2 == dest_tree->tree[i].children[0] && current_child1 == dest_tree->tree[i].children[1])){
+            // don't do anything, proceed to next iteration
+        } else if (current_child1 == dest_tree->tree[i].children[0]){
+            spr_move(current_tree, i, dest_tree->tree[i].children[1], 0);
+        } else if (current_child1 == dest_tree->tree[i].children[1]){
+            spr_move(current_tree, i, dest_tree->tree[i].children[0], 0);
+        } else if (current_child2 == dest_tree->tree[i].children[0]){
+            spr_move(current_tree, i, dest_tree->tree[i].children[1], 1);
+        } else if (current_child2 == dest_tree->tree[i].children[1]){
+            spr_move(current_tree, i, dest_tree->tree[i].children[0], 1);
+        } else
+            { // choose a random child of current node i to move -- we set this to be children[0]
+            spr_move(current_tree, i, dest_tree->tree[i].children[0], 0);
+            // add current_tree to path
+            for (long j = 0; j < 2 * num_leaves - 1; j++){
+                path.trees[index].tree[j] = current_tree->tree[j];
+            }
+            index ++;
+            // find the index of the child that we want to move now (the one that coincides with the one in dest_tree)
+            int child_index = 0;
+            if (current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]){
+                child_index = 1;
+            }
+            // now move the child that has correct parent to the other one of dest_tree
+            spr_move(current_tree, i, dest_tree->tree[i].children[1], child_index);
+        }
+        // add current_tree to path
+        for (long j = 0; j < 2 * num_leaves - 1; j++){
+            path.trees[index].tree[j] = current_tree->tree[j];
+        }
+        index ++;
+    }
+    path.num_trees = index;
+    free(current_tree);
+    return(path);
+}
+
+
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 // This function only works for ranked trees
 Path findpath(Tree *start_tree, Tree *dest_tree){

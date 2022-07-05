@@ -95,6 +95,11 @@ hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]
 hspr_neighbourhood.restype = TREE_LIST
 
+# C function rankedspr_path_bottom_up_hspr
+rankedspr_path_bottom_up_hspr = lib.rankedspr_path_bottom_up_hspr
+rankedspr_path_bottom_up_hspr.argtypes = [POINTER(TREE), POINTER(TREE)]
+rankedspr_path_bottom_up_hspr.restype = TREE_LIST
+
 # C function calculating size of symmetric cluster difference
 symm_cluster_diff = lib.symm_cluster_diff
 symm_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
