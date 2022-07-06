@@ -115,6 +115,11 @@ rankedspr_path_top_down_symm_diff = lib.rankedspr_path_top_down_symm_diff
 rankedspr_path_top_down_symm_diff.argtypes = [POINTER(TREE), POINTER(TREE)]
 rankedspr_path_top_down_symm_diff.restype = c_long
 
+# C function spr_neighbourhood (for testing purposes)
+rnni_neighbourhood = lib.rnni_neighbourhood
+rnni_neighbourhood.argtypes = [POINTER(TREE)]
+rnni_neighbourhood.restype = TREE_LIST
+
 # C function findpath_distance
 findpath_distance = lib.findpath_distance
 findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]

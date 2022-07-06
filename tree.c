@@ -233,6 +233,68 @@ int rank_move(Tree * input_tree, long rank_in_list){
 }
 
 
+// Compute Tree_List of all RNNI neighbours
+Tree_List rnni_neighbourhood(Tree *input_tree){
+    long num_leaves = input_tree->num_leaves;
+
+    // Initialise list of neighbours
+    Tree_List neighbour_list; // output list of neighbours
+    neighbour_list.num_trees = 2 * (num_leaves - 1); //max number of neighbours linear in number of internal nodes; max reached for caterpillar tree
+    neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
+    for (long i = 0; i < neighbour_list.num_trees; i++){
+        neighbour_list.trees[i].num_leaves = num_leaves;
+        neighbour_list.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    long index = 0; //index to the currently last element in neighbour_list
+
+    //Deep copy input tree to get neighbouring trees
+    Tree * neighbour = malloc(sizeof(Node*) + 3 * sizeof(long));
+    neighbour->num_leaves = num_leaves;
+    neighbour->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        neighbour->tree[i] = input_tree->tree[i];
+    }
+
+    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    for (long r=num_leaves; r<2* num_leaves-2; r++){
+        // Check if we can do rank move:
+        if (input_tree->tree[r].parent != r+1){
+            rank_move(neighbour, r);
+
+            // Add neighbour to neighbour_list:
+            // deep copy neighbour to path
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+            }
+            index++;
+            // always reset neighbour to be input_tree after every move
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour->tree[i] = input_tree->tree[i];
+            } 
+
+        }
+        else{ // otherwise, we do NNI moves (always 2 options)
+            for (long child_moves_up=0; child_moves_up<2; child_moves_up ++){
+                nni_move(neighbour, r, child_moves_up);
+                // Add neighbour to neighbour_list:
+                // deep copy neighbour to path
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+                }
+                index++;
+                // always reset neighbour to be input_tree after every move
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour->tree[i] = input_tree->tree[i];
+                }
+            }
+        }
+    }
+    neighbour_list.num_trees = index;
+    free(neighbour);
+    return(neighbour_list);
+}
+
+
 // find mrca of nodes with positions node1 and node2 in tree
 // returns the rank of the mrca
 long mrca(Tree * input_tree, long node1, long node2){
@@ -321,13 +383,13 @@ int move_up(Tree * itree, long i, long k){
 }
 
 
-// Compute a path in SPR and return it as Tree_List;
+// Compute Tree_List of all spr_neighbours
 // If horizontal = 1, we compute the rankedSPR neighbourhood(including rank moves), otherwise the hspr neighbouhood (without rank moves)
 Tree_List all_spr_neighbourhood(Tree *input_tree, int horizontal){
     long num_leaves = input_tree->num_leaves;
 
     // Initialise list of neighbours
-    Tree_List neighbour_list; // output: list of trees on FP path
+    Tree_List neighbour_list; // output list of neighbours
     neighbour_list.num_trees = 2 * num_leaves * (num_leaves - 1); //max number of neighbours (quadratic in number of ranks + at most linear number of rank moves)
     neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
     for (long i = 0; i < neighbour_list.num_trees; i++){
