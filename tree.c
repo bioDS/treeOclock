@@ -114,6 +114,17 @@ int same_topology(Tree* tree1, Tree* tree2){
 }
 
 
+// Check whether two trees are identical (output 0 if this is true, 1 otherwise)
+int same_tree(Tree* tree1, Tree* tree2){
+    for (long i = 0; i < 2* tree1->num_leaves - 1; i++){
+        if (tree1->tree[i].parent != tree2->tree[i].parent){
+            return(1);
+        }
+    }
+    return(0);
+}
+
+
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
@@ -516,12 +527,45 @@ Tree_List all_rank_neighbours(Tree* input_tree){
 }
 
 
+long* mrca_list(Tree* tree1, Tree* tree2){
+    long num_leaves = tree1->num_leaves;
+    long *mrca_list = malloc((2*num_leaves-1)*sizeof(long)); // at position i save rank(mrca_{tree1}(C_i)) where C_i is the cluster induced by node of rank i in tree2
+
+    for (long i = num_leaves; i < 2*num_leaves - 1; i++){
+        // iterate through the ranks of mrcas in dest_tree
+        // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
+        // printf("i: %ld, sum: %ld\n", i, sum);
+        long child0;
+        if (tree2->tree[i].children[0] < num_leaves){
+            // printf("Child0 is leaf\n");
+            child0 = tree2->tree[i].children[0];
+        } else{
+            child0 = mrca_list[tree2->tree[i].children[0]];
+            // printf("Child0 is internal node\n");
+        }
+
+        long child1;
+        if (tree2->tree[i].children[1] < num_leaves){
+            child1 = tree2->tree[i].children[1];
+        } else{
+            child1 = mrca_list[tree2->tree[i].children[1]];
+        }
+        // printf("child0: %ld, child1: %ld\n", child0, child1);
+
+        long current_mrca = mrca(tree1, child0, child1);
+        mrca_list[i] = current_mrca;
+        // printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
+    }
+    return(mrca_list);
+}
+
+
 long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_parents){
     // Compute differences of ranks of mrca's of all cluster of dest_tree btw current_tree and dest_tree
-    // Also add ranks of parent of leaves
+    // Also add ranks of parents of leaves if include_leaf_parents == 0
     long sum = 0;
     long num_leaves = dest_tree->num_leaves;
-    long mrca_list[2*num_leaves-1]; // at position i save rank(mrca_{current_tree}(C_i)) where C_i is the cluster induced by node of rank i in dest_tree
+    // long mrcas[2*num_leaves-1]; // at position i save rank(mrca_{current_tree}(C_i)) where C_i is the cluster induced by node of rank i in dest_tree
     // First iterate through leaves
     if (include_leaf_parents == 0){
         for (long i = 0; i < num_leaves; i++){
@@ -529,32 +573,9 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_pare
             // printf("i: %ld, sum: %ld\n", i, sum);
         }
     }
-    for (long i = num_leaves; i < 2*num_leaves - 2; i++){
-        // iterate through the ranks of mrcas in dest_tree
-        // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
-        // printf("i: %ld, sum: %ld\n", i, sum);
-        long child0;
-        if (dest_tree->tree[i].children[0] < num_leaves){
-            // printf("Child0 is leaf\n");
-            child0 = dest_tree->tree[i].children[0];
-        } else{
-            child0 = mrca_list[dest_tree->tree[i].children[0]];
-            // printf("Child0 is internal node\n");
-        }
-
-        long child1;
-        if (dest_tree->tree[i].children[1] < num_leaves){
-            child1 = dest_tree->tree[i].children[1];
-        } else{
-            child1 = mrca_list[dest_tree->tree[i].children[1]];
-        }
-        // printf("child0: %ld, child1: %ld\n", child0, child1);
-
-        long current_mrca = mrca(current_tree, child0, child1);
-        mrca_list[i] = current_mrca;
-        // printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
-        sum += abs(current_mrca - i);
-        // printf("i: %ld, sum: %ld\n", i, sum);
+    long* mrcas = mrca_list(current_tree, dest_tree);
+    for (long i = num_leaves; i < 2*num_leaves-1; i++){
+        sum += (mrcas[i] - i);
     }
     return(sum);
 }
@@ -736,7 +757,8 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
 
 
 Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
-    // approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only (to test if minimising the mrca difference for this path gives the first part of a shortest RSPR path)
+    // approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only 
+    // We only do an RNNI move if it does not increase the rank difference of any mrcas or parents of leaves when considering clusters in dest_tree
     long num_leaves = start_tree->num_leaves;
 
     // Initialise output path
@@ -764,31 +786,52 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
     index+=1;
 
     int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no)
-    long old_mrca_diff = mrca_differences(current_tree, dest_tree, 0);
     while (change == 0){
-        change = 1;
-        // printf("current tree: %s\n", tree_to_string(current_tree));
+        printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = rnni_neighbourhood(current_tree);
+
+        long * current_mrcas = mrca_list(current_tree, dest_tree); // get mrca list for current tree to be able to compare mrcas to neighbours
         for (long i = 0; i < neighbours.num_trees; i++){
+            change = 0;
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, 0);
-            // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
-            // printf("mrca_diff: %ld\n", new_mrca_diff);
-            if (new_mrca_diff < old_mrca_diff){
-                change = 0;
-                old_mrca_diff = new_mrca_diff;
-                // update current_tree and add it to path list
-                for (long j = 0; j < 2 * num_leaves - 1; j++){
-                    current_tree->tree[j] = neighbour_pointer->tree[j];
+            printf("neighbouring tree: %s\n", tree_to_string(neighbour_pointer));
+            long *neighbour_mrcas = mrca_list(neighbour_pointer, dest_tree);
+            // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
+            for (long j = 0; j < 2 * num_leaves - 1; j++){
+                if (j >= num_leaves){
+                    printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
+                }
+                if (j < num_leaves){
+                    printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
+                }
+                if (j < num_leaves && abs(dest_tree->tree[j].parent-current_tree->tree[j].parent) < abs(dest_tree->tree[j].parent-neighbour_pointer->tree[j].parent)){
+                    // if there is a leaf whose parent gets moved further away from where it is in the destination tree, compared to current_tree, then this neighbour is not chosen for our path
+                    change = 1;
+                    break;
+                }
+                else if (j >= num_leaves && abs((j-num_leaves) - current_mrcas[j])< abs((j-num_leaves) - neighbour_mrcas[j])){
+                    // check if any of the mrcas have bigger rank difference in neighbour&dest_tree than in current_tree&dest_tree
+                    // if they do, then we do not add this neighbour to the shortest path
+                    change = 1;
+                    break;
                 }
             }
-        }
-        if(change==0){
+            // We only get here if the neighbour is an improvement over current_tree
+            // deep copy neighbouring tree to become current_tree
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                current_tree->tree[i] = neighbour_pointer->tree[i];
+            }
             for (long j = 0; j < 2 * num_leaves - 1; j++){
                 path.trees[index].tree[j] = current_tree->tree[j];
             }
             index += 1;
+            break; // no need to look at further neighbours
+        }
+        if (same_tree(current_tree, dest_tree)==0){
+            free(current_tree);
+            path.num_trees = index;
+            return(path);
         }
     }
     free(current_tree);

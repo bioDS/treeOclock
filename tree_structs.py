@@ -139,3 +139,7 @@ findpath_path.restype = TREE_LIST
 random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
 random_walk.restype = c_long
+
+mrca_list = lib.mrca_list
+mrca_list.argtypes = [POINTER(TREE), POINTER(TREE)]
+mrca_list.restype = POINTER(c_long)
