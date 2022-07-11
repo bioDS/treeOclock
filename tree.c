@@ -785,12 +785,13 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
     }
     index+=1;
 
-    int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no)
+    int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no); this will turn to 1 once we are done with RNNI moves (on a path to dest_tree we assume that only HSPR moves follow)
     while (change == 0){
         printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = rnni_neighbourhood(current_tree);
 
         long * current_mrcas = mrca_list(current_tree, dest_tree); // get mrca list for current tree to be able to compare mrcas to neighbours
+
         for (long i = 0; i < neighbours.num_trees; i++){
             change = 0;
             Tree* neighbour_pointer;
