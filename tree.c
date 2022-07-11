@@ -516,17 +516,19 @@ Tree_List all_rank_neighbours(Tree* input_tree){
 }
 
 
-long mrca_differences(Tree* current_tree, Tree* dest_tree){
+long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_parents){
     // Compute differences of ranks of mrca's of all cluster of dest_tree btw current_tree and dest_tree
     // Also add ranks of parent of leaves
     long sum = 0;
     long num_leaves = dest_tree->num_leaves;
     long mrca_list[2*num_leaves-1]; // at position i save rank(mrca_{current_tree}(C_i)) where C_i is the cluster induced by node of rank i in dest_tree
-    // // First iterate through leaves
-    // for (long i = 0; i < num_leaves; i++){
-    //     sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
-    //     // printf("i: %ld, sum: %ld\n", i, sum);
-    // }
+    // First iterate through leaves
+    if (include_leaf_parents == 0){
+        for (long i = 0; i < num_leaves; i++){
+            sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
+            // printf("i: %ld, sum: %ld\n", i, sum);
+        }
+    }
     for (long i = num_leaves; i < 2*num_leaves - 2; i++){
         // iterate through the ranks of mrcas in dest_tree
         // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
@@ -645,14 +647,14 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
     index+=1;
 
     // long diff = symmetric_cluster_diff(current_tree, dest_tree);
-    long diff = mrca_differences(current_tree, dest_tree) + symmetric_cluster_diff(current_tree, dest_tree);
+    long diff = mrca_differences(current_tree, dest_tree, 1) + symmetric_cluster_diff(current_tree, dest_tree);
     while (diff > 0){
         // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long new_diff =  mrca_differences(neighbour_pointer, dest_tree) + symmetric_cluster_diff(neighbour_pointer, dest_tree);
+            long new_diff =  mrca_differences(neighbour_pointer, dest_tree, 1) + symmetric_cluster_diff(neighbour_pointer, dest_tree);
             // long new_diff = symmetric_cluster_diff(neighbour_pointer, dest_tree);
             // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
             // printf("mrca_diff: %ld\n", new_mrca_diff);
@@ -704,14 +706,14 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
     }
     index+=1;
 
-    long mrca_diff = mrca_differences(current_tree, dest_tree);
+    long mrca_diff = mrca_differences(current_tree, dest_tree, 1);
     while (mrca_diff > 0){
         // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree);
+            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, 1);
             // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
             // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_mrca_diff < mrca_diff){
@@ -726,6 +728,68 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
             path.trees[index].tree[j] = current_tree->tree[j];
         }
         index += 1;
+    }
+    free(current_tree);
+    path.num_trees = index;
+    return(path);
+}
+
+
+Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
+    // approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only (to test if minimising the mrca difference for this path gives the first part of a shortest RSPR path)
+    long num_leaves = start_tree->num_leaves;
+
+    // Initialise output path
+    Tree_List path; // output: list of trees on FP path
+    path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 3; //diameter of rankedspr is less than quadratic
+    path.trees = malloc(path.num_trees * sizeof(Tree));
+    for (long i = 0; i < path.num_trees; i++){
+        path.trees[i].num_leaves = num_leaves;
+        path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    // current path index (i.e. current path length)
+    long index = 0;
+
+    //Deep copy start tree to get new tree to be added to path iteratively
+    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
+    current_tree->num_leaves = num_leaves;
+    current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        current_tree->tree[i] = start_tree->tree[i];
+    }
+    // Add the first tree to output path
+    for (long j = 0; j < 2 * num_leaves - 1; j++){
+        path.trees[index].tree[j] = current_tree->tree[j];
+    }
+    index+=1;
+
+    int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no)
+    long old_mrca_diff = mrca_differences(current_tree, dest_tree, 0);
+    while (change == 0){
+        change = 1;
+        // printf("current tree: %s\n", tree_to_string(current_tree));
+        Tree_List neighbours = rnni_neighbourhood(current_tree);
+        for (long i = 0; i < neighbours.num_trees; i++){
+            Tree* neighbour_pointer;
+            neighbour_pointer = &neighbours.trees[i];
+            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, 0);
+            // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
+            // printf("mrca_diff: %ld\n", new_mrca_diff);
+            if (new_mrca_diff < old_mrca_diff){
+                change = 0;
+                old_mrca_diff = new_mrca_diff;
+                // update current_tree and add it to path list
+                for (long j = 0; j < 2 * num_leaves - 1; j++){
+                    current_tree->tree[j] = neighbour_pointer->tree[j];
+                }
+            }
+        }
+        if(change==0){
+            for (long j = 0; j < 2 * num_leaves - 1; j++){
+                path.trees[index].tree[j] = current_tree->tree[j];
+            }
+            index += 1;
+        }
     }
     free(current_tree);
     path.num_trees = index;
