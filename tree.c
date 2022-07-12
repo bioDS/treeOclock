@@ -1652,3 +1652,206 @@ long random_walk(Tree * tree, long k){
     free(current_tree);
     return(distance);
 }
+
+
+// FINDPATH in RSPR -- to compute beginning of path with inly RNNI moves
+// Only does RNNI move decreasing the rank of the current MRCA or parent of one of the children of current cluster of dest_tree.
+// stops if the next tree has an mrca that moves away from its place in dest_tree
+long findpath_rspr(Tree *start_tree, Tree *dest_tree){
+    long num_leaves = start_tree->num_leaves;
+    long path_index = 0; // next position on path that we want to fill with a tree pointer
+    if (start_tree->tree == NULL){
+        printf("Error. Start tree doesn't exist.\n");
+    } else if (dest_tree->tree == NULL){
+        printf("Error. Destination tree doesn't exist.\n");
+    } else{
+        long current_mrca; //rank of the mrca that needs to be moved down
+        Tree current_tree;
+        current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+        current_tree.num_leaves = num_leaves;
+        for (long i = 0; i < 2 * num_leaves - 1; i++){
+            current_tree.tree[i] = start_tree->tree[i];
+        }
+        // This pointer is needed for finding the mrca, and doing moves (nni, rank, length)
+        Tree * current_tree_pointer;
+        current_tree_pointer = &current_tree;
+        for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
+            if (current_tree.tree[i].time < dest_tree->tree[i].time){
+                path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
+            }
+            // we now need to find the current MRCA and decrease its time in the tree
+            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
+            // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
+            while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
+                int did_move = 1; // check if we did any moves at all -- if not, we are at the end of the initial sequence of RNNI move in the HSPR path
+                // We first see if we need to do length moves:
+                // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
+                // After this, we do an NNI or rank move and then repeat the while loop
+                if (current_tree.tree[current_mrca-1].time < current_tree.tree[current_mrca].time - 1){
+                    // We either need to move the node to be right above the time of the next lower node...
+                    if( current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){
+                        // Update the time to be one greater than the time of the next lower node.
+                        // This is equivalent to doing length moves, so we add the time difference to the distance
+                        path_index += current_tree.tree[current_mrca].time - (current_tree.tree[current_mrca-1].time + 1);
+                        current_tree.tree[current_mrca].time = current_tree.tree[current_mrca-1].time + 1;
+                    // Or we move the current node to be at the same position as the corresponding node in dest_tree
+                    } else{ // in this case we move the node to its final position
+                        path_index += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
+                        current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
+                        break; // the current iteration i is finished
+                    }
+                }
+                // Deep copy current tree to get neighbour
+                Tree neighbour;
+                neighbour.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+                neighbour.num_leaves = num_leaves;
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    neighbour.tree[i] = start_tree->tree[i];
+                }
+                Tree * neighbour_pointer = &neighbour;
+                bool did_nni = false; //we first check if we are at an edge. If not, then did_rnni stays false and we do a rank move
+                for (int child_index = 0; child_index < 2; child_index++){
+                    // find out if one of the children of neighbour.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
+                    if (did_nni == false && neighbour.tree[current_mrca].children[child_index] == current_mrca - 1){ // do nni if current interval is an edge
+                        // check which of the children of neighbour.tree[current_mrca] should move up by the NNI move 
+                        bool found_child = false; //indicate if we found the correct child
+                        int child_stays; // index of the child of neighbour.tree[current_mrca] that does not move up by an NNI move
+                        // find the index of the child of the parent of the node we currently consider -- this will be the index child_stays that we want in the end
+                        int current_child_index = dest_tree->tree[i].children[0]; // rank of already existing cluster in both neighbour.tree and dest_tree->tree
+                        while (found_child == false){
+                            while (neighbour.tree[current_child_index].parent < current_mrca - 1){ // find the x for which dest_tree->tree[i].children[x] is contained in the cluster induced by neighbour.tree[current_mrca - 1]
+                                current_child_index = neighbour.tree[current_child_index].parent;
+                            }
+                            // find the index child_stays
+                            if(neighbour.tree[current_child_index].parent == current_mrca - 1){
+                                found_child = true;
+                                if (neighbour.tree[neighbour.tree[current_child_index].parent].children[0] == current_child_index){
+                                    child_stays = 0;
+                                } else{
+                                    child_stays = 1;
+                                }
+                            } else{
+                                current_child_index = dest_tree->tree[i].children[1];
+                            }
+                        }
+                        nni_move(neighbour_pointer, current_mrca - 1, 1 - child_stays);
+                        did_nni = true;
+                        current_mrca--;
+                    }
+                }
+                if (did_nni == false){
+                    rank_move(neighbour_pointer, current_mrca - 1);
+                    current_mrca--;
+                }
+                // Check if we can actually add new neighbour to path
+                long * mrcas = mrca_list(neighbour_pointer, dest_tree);
+                long * old_mrcas = mrca_list(current_tree_pointer, dest_tree);
+                // Check if any mrca got worse
+                int add_to_path = 0; // only add neighbour to path if no mrca gets worse
+                for(long i = 0; i < num_leaves-1; i++){
+                    if (abs(i-mrcas[i]) > abs(i-old_mrcas[i])){
+                        add_to_path = 1;
+                    }
+                }
+                if (add_to_path == 0){
+                    // update current_tree to neighbour:
+                    for (long i = 0; i < 2 * num_leaves - 1; i++){
+                        current_tree.tree[i] = neighbour.tree[i];
+                    }
+                    path_index++;
+                    did_move = 1;
+                }
+                else{ // try to move parent of one of the children that build current cluster in dest_tree
+                    long child[2] = {dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]};
+                    // decrease rank of child1
+                    for (int c = 0; c < 2; c ++){
+                        long parent = current_tree.tree[child[c]].parent;
+                        if((parent == current_tree.tree[parent].children[0] + 1) || (parent == current_tree.tree[parent].children[1] + 1)){ // we can do an NNI move to decrease the rank of parent by one
+                            nni_move(neighbour_pointer, parent-1, 0);
+                            // Check if we can actually add new neighbour to path
+                            long * mrcas = mrca_list(neighbour_pointer, dest_tree);
+                            long * old_mrcas = mrca_list(current_tree_pointer, dest_tree);
+                            // Check if any mrca got worse
+                            int add_to_path = 0; // only add neighbour to path if no mrca gets worse
+                            for(long i = 0; i < num_leaves-1; i++){
+                                if (abs(i-mrcas[i]) > abs(i-old_mrcas[i])){
+                                    add_to_path = 1;
+                                }
+                            }
+                            if (add_to_path == 0){
+                                // update current_tree to neighbour:
+                                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                    current_tree.tree[i] = neighbour.tree[i];
+                                }
+                                path_index++;
+                                did_move = 1;
+                            } else{
+                                // reset neighbour to current_tree:
+                                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                    neighbour.tree[i] = current_tree.tree[i];
+                                }
+                                // try second nni move
+                                nni_move(neighbour_pointer, parent-1, 1);
+                                // Check if we can actually add new neighbour to path
+                                long * mrcas = mrca_list(neighbour_pointer, dest_tree);
+                                long * old_mrcas = mrca_list(current_tree_pointer, dest_tree);
+                                // Check if any mrca got worse
+                                int add_to_path = 0; // only add neighbour to path if no mrca gets worse
+                                for(long i = 0; i < num_leaves-1; i++){
+                                    if (abs(i-mrcas[i]) > abs(i-old_mrcas[i])){
+                                        add_to_path = 1;
+                                    }
+                                }
+                                if (add_to_path == 0){
+                                    // update current_tree to neighbour:
+                                    for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                        current_tree.tree[i] = neighbour.tree[i];
+                                    }
+                                    path_index++;
+                                    did_move = 1;
+                                } else{
+                                    // reset neighbour to current_tree:
+                                    for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                        neighbour.tree[i] = current_tree.tree[i];
+                                    }
+                                }
+                            }
+                        } else{ // rank move to decrease rank of parent
+                            rank_move(neighbour_pointer, parent - 1);
+                            // Check if we can actually add new neighbour to path
+                            long * mrcas = mrca_list(neighbour_pointer, dest_tree);
+                            long * old_mrcas = mrca_list(current_tree_pointer, dest_tree);
+                            // Check if any mrca got worse
+                            int add_to_path = 0; // only add neighbour to path if no mrca gets worse
+                            for(long i = 0; i < num_leaves-1; i++){
+                                if (abs(i-mrcas[i]) > abs(i-old_mrcas[i])){
+                                    add_to_path = 1;
+                                }
+                            }
+                            if (add_to_path == 0){
+                                // update current_tree to neighbour:
+                                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                    current_tree.tree[i] = neighbour.tree[i];
+                                }
+                                path_index++;
+                                did_move = 1;
+                            } else{
+                                // reset neighbour to current_tree:
+                                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                                    neighbour.tree[i] = current_tree.tree[i];
+                                }
+                            }
+                        }
+                    }
+                }
+                printf("%s\n", tree_to_string(current_tree_pointer));
+                if (did_move == 1){
+                    return(path_index);
+                }
+            }
+            // printf("path_index: %ld \n", path_index);
+        }
+        free(current_tree.tree);
+    }
+    return path_index;
+}
