@@ -321,6 +321,40 @@ long mrca(Tree * input_tree, long node1, long node2){
     return rank1;
 }
 
+
+// decrease the mrca of node1 and node2 in tree by a (unique) RNNI move
+int decrease_mrca(Tree* tree, long node1, long node2){
+    long num_leaves = tree->num_leaves;
+    long current_mrca = mrca(tree, node1, node2);
+    // deep copy tree
+    Tree* neighbour = malloc(sizeof(Node*) + 3 * sizeof(long));
+    neighbour->tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+    neighbour->num_leaves = num_leaves;
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        neighbour->tree[i] = tree->tree[i];
+    }
+    if (neighbour->tree[current_mrca-1].parent == current_mrca){ // edge -> NNI move
+        // we try both possible NNI move and see which one decreases the rank of the mrca
+        nni_move(neighbour, current_mrca-1, 0);
+        if(mrca(neighbour,node1,node2)>=current_mrca){
+            // we did not decrease the rank of the mrca by this nni move, so we need to do the other one
+            // but first we need to reset neighbour to tree:
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour->tree[i] = tree->tree[i];
+            }
+            nni_move(neighbour, current_mrca-1, 1);
+        }
+    } else{ // otherwise, we make a rank move
+        rank_move(neighbour, current_mrca - 1);
+    }
+    // now update tree to become neighbour
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        tree->tree[i] = neighbour->tree[i];
+    }
+    return 0;
+}
+
+
 // compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
 long shortest_rank_path(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
@@ -1855,3 +1889,31 @@ long findpath_rspr(Tree *start_tree, Tree *dest_tree){
     }
     return path_index;
 }
+
+
+
+
+// Tree_List fp_rspr(Tree* tree1, Tree* tree2){
+//     // compute first RNNI moves on shortest RSPR path.
+//     // Follow FP bottom-up approach, but only accept move that does not move any mrca's or parents of leaves in the wrong direction
+//     // if no such FP move exist, try moving one of the children that build current cluster in tree2 down.
+
+//     long num_leaves = tree1->num_leaves;
+//     long num_nodes = 2 * num_leaves -1;
+
+//     // deep copy starting tree
+//     Tree * current_tree;
+//     current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+//     current_tree->num_leaves = num_leaves;
+//     for (long i = 0; i < 2 * num_leaves - 1; i++){
+//         current_tree->tree[i] = tree1->tree[i];
+//     }
+
+//     // iterate through nodes of tree2 and try to fix one node at a time
+//     for(long i = num_leaves; i < num_nodes; i++){
+//         long current_mrca = mrca(current_tree, tree2->tree[i].children[0], tree2->tree[i].children[1]);
+//         while (current_mrca > i){
+//             // try to decrease the mrca of current_mrca
+//         }
+//     }
+// }
