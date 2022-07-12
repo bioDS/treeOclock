@@ -153,3 +153,8 @@ fp_rspr.restype = c_long
 decrease_mrca = lib.decrease_mrca
 decrease_mrca.argtypes = [POINTER(TREE), c_long, c_long]
 decrease_mrca.restype = c_int
+
+# C function same_tree
+same_tree = lib.same_tree
+same_tree.argtypes = [POINTER(TREE), POINTER(TREE)]
+same_tree.restype = c_int
