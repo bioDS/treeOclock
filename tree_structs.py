@@ -144,10 +144,10 @@ mrca_list = lib.mrca_list
 mrca_list.argtypes = [POINTER(TREE), POINTER(TREE)]
 mrca_list.restype = POINTER(c_long)
 
-# C function findpath_rspr
-findpath_rspr = lib.findpath_rspr
-findpath_rspr.argtypes = [POINTER(TREE), POINTER(TREE)]
-findpath_rspr.restype = c_long
+# C function fp_rspr
+fp_rspr = lib.fp_rspr
+fp_rspr.argtypes = [POINTER(TREE), POINTER(TREE)]
+fp_rspr.restype = c_long
 
 # C function decrease_mrca (for testing)
 decrease_mrca = lib.decrease_mrca
