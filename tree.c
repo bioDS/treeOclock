@@ -368,6 +368,53 @@ int decrease_mrca(Tree* tree, long node1, long node2){
 }
 
 
+// Compute Tree_List of all rank neighbours
+Tree_List rank_neighbourhood(Tree *input_tree){
+    long num_leaves = input_tree->num_leaves;
+
+    // Initialise list of neighbours
+    Tree_List neighbour_list; // output list of neighbours
+    neighbour_list.num_trees = 2 * (num_leaves - 1); //max number of neighbours linear in number of internal nodes; max reached for caterpillar tree
+    neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
+    for (long i = 0; i < neighbour_list.num_trees; i++){
+        neighbour_list.trees[i].num_leaves = num_leaves;
+        neighbour_list.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
+    }
+    long index = 0; //index to the currently last element in neighbour_list
+
+    //Deep copy input tree to get neighbouring trees
+    Tree * neighbour = malloc(sizeof(Node*) + 3 * sizeof(long));
+    neighbour->num_leaves = num_leaves;
+    neighbour->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        neighbour->tree[i] = input_tree->tree[i];
+    }
+
+    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    for (long r=num_leaves; r<2* num_leaves-2; r++){
+        // Check if we can do rank move:
+        if (input_tree->tree[r].parent != r+1){
+            rank_move(neighbour, r);
+
+            // Add neighbour to neighbour_list:
+            // deep copy neighbour to path
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour_list.trees[index].tree[i] = neighbour->tree[i];
+            }
+            index++;
+            // always reset neighbour to be input_tree after every move
+            for (long i = 0; i < 2 * num_leaves - 1; i++){
+                neighbour->tree[i] = input_tree->tree[i];
+            } 
+
+        }
+    }
+    neighbour_list.num_trees = index;
+    free(neighbour);
+    return(neighbour_list);
+}
+
+
 // compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
 long shortest_rank_path(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
@@ -803,7 +850,7 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
 }
 
 
-Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
+Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int rank){
     // approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only 
     // We only do an RNNI move if it does not increase the rank difference of any mrcas or parents of leaves when considering clusters in dest_tree
     long num_leaves = start_tree->num_leaves;
@@ -834,8 +881,17 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
 
     int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no); this will turn to 1 once we are done with RNNI moves (on a path to dest_tree we assume that only HSPR moves follow)
     while (change == 0){
-        printf("current tree: %s\n", tree_to_string(current_tree));
-        Tree_List neighbours = rnni_neighbourhood(current_tree);
+        // printf("current tree: %s\n", tree_to_string(current_tree));
+        Tree_List neighbours;
+        if (rank == 0){
+            neighbours = rank_neighbourhood(current_tree);
+        } else{
+            neighbours = rnni_neighbourhood(current_tree);
+        }
+
+        if (neighbours.num_trees == 0){
+            break;
+        }
 
         long * current_mrcas = mrca_list(current_tree, dest_tree); // get mrca list for current tree to be able to compare mrcas to neighbours
 
@@ -843,15 +899,15 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree){
             change = 0;
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            printf("neighbouring tree: %s\n", tree_to_string(neighbour_pointer));
+            // printf("neighbouring tree: %s\n", tree_to_string(neighbour_pointer));
             long *neighbour_mrcas = mrca_list(neighbour_pointer, dest_tree);
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
                 if (j >= num_leaves){
-                    printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
+                    // printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
                 }
                 if (j < num_leaves){
-                    printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
+                    // printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
                 }
                 if (j < num_leaves && abs(dest_tree->tree[j].parent-current_tree->tree[j].parent) < abs(dest_tree->tree[j].parent-neighbour_pointer->tree[j].parent)){
                     // if there is a leaf whose parent gets moved further away from where it is in the destination tree, compared to current_tree, then this neighbour is not chosen for our path

@@ -117,7 +117,7 @@ rankedspr_path_top_down_symm_diff.restype = c_long
 
 # C function approximating shortest path in top-down fashion
 rankedspr_path_rnni_mrca_diff = lib.rankedspr_path_rnni_mrca_diff
-rankedspr_path_rnni_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE)]
+rankedspr_path_rnni_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
 rankedspr_path_rnni_mrca_diff.restype = TREE_LIST
 
 # C function spr_neighbourhood (for testing purposes)
