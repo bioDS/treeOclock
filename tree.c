@@ -904,12 +904,13 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
                 if (j >= num_leaves){
-                    // printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
+                    printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
                 }
                 if (j < num_leaves){
-                    // printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
+                    printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
                 }
                 if (j < num_leaves && abs(dest_tree->tree[j].parent-current_tree->tree[j].parent) < abs(dest_tree->tree[j].parent-neighbour_pointer->tree[j].parent)){
+                    printf("here\n");
                     // if there is a leaf whose parent gets moved further away from where it is in the destination tree, compared to current_tree, then this neighbour is not chosen for our path
                     change = 1;
                     break;
@@ -921,16 +922,18 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
                     break;
                 }
             }
-            // We only get here if the neighbour is an improvement over current_tree
-            // deep copy neighbouring tree to become current_tree
-            for (long i = 0; i < 2 * num_leaves - 1; i++){
-                current_tree->tree[i] = neighbour_pointer->tree[i];
+            if (change == 0){
+                // We only get here if the neighbour is an improvement over current_tree
+                // deep copy neighbouring tree to become current_tree
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    current_tree->tree[i] = neighbour_pointer->tree[i];
+                }
+                for (long j = 0; j < 2 * num_leaves - 1; j++){
+                    path.trees[index].tree[j] = current_tree->tree[j];
+                }
+                index += 1;
+                break; // no need to look at further neighbours
             }
-            for (long j = 0; j < 2 * num_leaves - 1; j++){
-                path.trees[index].tree[j] = current_tree->tree[j];
-            }
-            index += 1;
-            break; // no need to look at further neighbours
         }
         if (same_tree(current_tree, dest_tree)==0){
             free(current_tree);
