@@ -904,13 +904,12 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
                 if (j >= num_leaves){
-                    printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
+                    // printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
                 }
                 if (j < num_leaves){
-                    printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
+                    // printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
                 }
                 if (j < num_leaves && abs(dest_tree->tree[j].parent-current_tree->tree[j].parent) < abs(dest_tree->tree[j].parent-neighbour_pointer->tree[j].parent)){
-                    printf("here\n");
                     // if there is a leaf whose parent gets moved further away from where it is in the destination tree, compared to current_tree, then this neighbour is not chosen for our path
                     change = 1;
                     break;
