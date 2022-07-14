@@ -77,7 +77,7 @@ spr_neighbourhood.restype = TREE_LIST
 
 # C function spr_neighbourhood (for testing purposes)
 all_spr_neighbourhood = lib.all_spr_neighbourhood
-all_spr_neighbourhood.argtypes = [POINTER(TREE)]
+all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
 all_spr_neighbourhood.restype = TREE_LIST
 
 # C function all_rank_neighbours
