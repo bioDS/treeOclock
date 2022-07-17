@@ -1821,3 +1821,24 @@ long fp_rspr(Tree* tree1, Tree* tree2){
     }
     return(path_length); // this only happens if the entire path consists of RNNI moves only
 }
+
+
+int first_iteration(Tree_List* treelist, long node1, long node2, long r){
+    // perform one iteration of FP on every tree in tree_list, such that resulting tree has mrca of i and j at position r
+    for(long i = 0; i < treelist->num_trees; i++){
+        while(mrca(&treelist->trees[i], node1, node2) > r){
+            decrease_mrca(&treelist->trees[i], node1, node2);
+        }
+    }
+    return 0;
+}
+
+
+long sos(Tree_List* treelist, Tree* focal_tree){
+    // compute sum of squared distances for all tree in treelist to focal_tree
+    long sos = 0;
+    for(long i = 0; i < treelist->num_trees; i++){
+        sos += findpath_distance(&treelist->trees[i], focal_tree);
+    }
+    return sos;
+}

@@ -163,3 +163,11 @@ same_tree.restype = c_int
 mrca = lib.mrca
 mrca.argtypes = [POINTER(TREE), c_long, c_long]
 mrca.restype = c_long
+
+first_iteration = lib.first_iteration
+first_iteration.argtypes = [POINTER(TREE_LIST), c_long, c_long, c_long]
+first_iteration.restype = c_int
+
+sos = lib.sos
+sos.argtypes = [POINTER(TREE_LIST), POINTER(TREE)]
+sos.restype = c_long
