@@ -731,6 +731,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         Tree * current_tree_pointer;
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
+            // we might need to move nodes below the time of node i in dest_tree up in the current tree
             if (current_tree.tree[i].time < dest_tree->tree[i].time){
                 path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
             }
@@ -755,40 +756,9 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
                         break; // the current iteration i is finished
                     }
                 }
-                bool did_nni = false; //we first check if we are at an edge. If not, then did_rnni stays false and we do a rank move
-                for (int child_index = 0; child_index < 2; child_index++){
-                    // find out if one of the children of current_tree.tree[current_mrca] has rank current_mrca - 1. If this is the case, we want to make an NNI
-                    if (did_nni == false && current_tree.tree[current_mrca].children[child_index] == current_mrca - 1){ // do nni if current interval is an edge
-                        // check which of the children of current_tree.tree[current_mrca] should move up by the NNI move 
-                        bool found_child = false; //indicate if we found the correct child
-                        int child_stays; // index of the child of current_tree.tree[current_mrca] that does not move up by an NNI move
-                        // find the index of the child of the parent of the node we currently consider -- this will be the index child_stays that we want in the end
-                        int current_child_index = dest_tree->tree[i].children[0]; // rank of already existing cluster in both current_tree.tree and dest_tree->tree
-                        while (found_child == false){
-                            while (current_tree.tree[current_child_index].parent < current_mrca - 1){ // find the x for which dest_tree->tree[i].children[x] is contained in the cluster induced by current_tree.tree[current_mrca - 1]
-                                current_child_index = current_tree.tree[current_child_index].parent;
-                            }
-                            // find the index child_stays
-                            if(current_tree.tree[current_child_index].parent == current_mrca - 1){
-                                found_child = true;
-                                if (current_tree.tree[current_tree.tree[current_child_index].parent].children[0] == current_child_index){
-                                    child_stays = 0;
-                                } else{
-                                    child_stays = 1;
-                                }
-                            } else{
-                                current_child_index = dest_tree->tree[i].children[1];
-                            }
-                        }
-                        nni_move(current_tree_pointer, current_mrca - 1, 1 - child_stays);
-                        did_nni = true;
-                        current_mrca--;
-                    }
-                }
-                if (did_nni == false){
-                    rank_move(current_tree_pointer, current_mrca - 1);
-                    current_mrca--;
-                }
+                // Now do RNNI moves
+                decrease_mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
+                current_mrca--;
                 path_index++;
             }
             // printf("path_index: %ld \n", path_index);
