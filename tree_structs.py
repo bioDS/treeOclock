@@ -71,9 +71,14 @@ findpath_distance = lib.findpath_distance
 findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_distance.restype = c_long
 
-return_findpath = lib.return_findpath
-return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
-return_findpath.restype = TREE_PATH
+findpath = lib.findpath
+findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
+findpath.restype = TREE_PATH
+
+# findpath_after_x_percent_tree = lib.findpath_after_x_percent_tree
+# findpath_after_x_percent_tree.argtypes = [POINTER(TREE), POINTER(TREE), c_float]
+# findpath_after_x_percent_tree.restype = TREE
+
 random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
 random_walk.restype = c_long

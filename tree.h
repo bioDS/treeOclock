@@ -64,9 +64,10 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k);
 int move_up(Tree * itree, long i, long k);
 
 long shortest_rank_path(Tree* tree1, Tree* tree2);
-Path_matrix findpath(Tree *start_tree, Tree *dest_tree);
+Tree_Path findpath(Tree *start_tree, Tree *dest_tree);
 long findpath_distance(Tree *start_tree, Tree *dest_tree);
-Tree_Path return_findpath(Tree *start_tree, Tree *dest_tree);
+// Tree_Path return_findpath(Tree *start_tree, Tree *dest_tree);
+Tree findpath_kth_tree(Tree* start_tree, Tree* dest_tree);
 long random_walk(Tree * tree, long k);
 
 int first_iteration(Tree_List* treelist, long node1, long node2, long r);
