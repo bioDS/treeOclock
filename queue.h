@@ -1,6 +1,8 @@
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
+#include <stdlib.h>
+
 typedef struct Queue_Item {
     void* contents;
     void* next;

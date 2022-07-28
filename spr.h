@@ -2,6 +2,7 @@
 #define SPR_H_
 
 #include "tree.h"
+#include "queue.h"
 
 int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving);
 

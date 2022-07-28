@@ -1,12 +1,7 @@
 /*Efficient implementation of FINDPATH on ranked trees*/
+// Author: Lena Collienne
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <time.h>
 #include "tree.h"
-#include "queue.h"
 
 
 // Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)

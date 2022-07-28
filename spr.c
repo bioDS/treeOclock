@@ -1,12 +1,6 @@
 /*Implementations for SPR distances on ranked trees*/
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <time.h>
-#include "tree.h"
-#include "queue.h"
+#include "spr.h"
 
 
 // ranked SPR move pruning the child with index child_moving of the node at position r of the node_list.

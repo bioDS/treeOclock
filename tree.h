@@ -1,6 +1,12 @@
 #ifndef TREE_H_
 #define TREE_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+#include "queue.h"
 
 typedef struct Node {
   long parent;
