@@ -30,6 +30,15 @@ class TREE_LIST(Structure):
         self.max_root_time = max_root_time
 
 
+class TREE_PATH(Structure):
+    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long), ('length', c_long), ('tree_positions', POINTER(c_long))]
+    def __init_(self, trees, num_trees, length, tree_positions):
+        self.trees = trees
+        self.num_trees = num_trees
+        self.length = length
+        self.tree_positions = tree_position
+
+
 tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
 tree_to_cluster_string.restype = c_char_p
@@ -64,8 +73,7 @@ findpath_distance.restype = c_long
 
 return_findpath = lib.return_findpath
 return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
-return_findpath.restype = TREE_LIST
-
+return_findpath.restype = TREE_PATH
 random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
 random_walk.restype = c_long

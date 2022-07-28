@@ -27,11 +27,18 @@ typedef struct Tree_List{
   long max_root_time;
 } Tree_List;
 
+typedef struct Tree_Path{
+  Tree * trees;
+  long num_trees;
+  long length;
+  long* tree_positions;
+} Tree_Path;
 
-typedef struct Path{
+typedef struct Path_matrix{
   long ** moves;
   long length;
-} Path;
+  long num_trees;
+} Path_matrix;
 
 int get_num_digits(int integer);
 Tree* deep_copy(Tree* tree);
@@ -57,9 +64,9 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k);
 int move_up(Tree * itree, long i, long k);
 
 long shortest_rank_path(Tree* tree1, Tree* tree2);
-Path findpath(Tree *start_tree, Tree *dest_tree);
+Path_matrix findpath(Tree *start_tree, Tree *dest_tree);
 long findpath_distance(Tree *start_tree, Tree *dest_tree);
-Tree_List return_findpath(Tree *start_tree, Tree *dest_tree);
+Tree_Path return_findpath(Tree *start_tree, Tree *dest_tree);
 long random_walk(Tree * tree, long k);
 
 int first_iteration(Tree_List* treelist, long node1, long node2, long r);

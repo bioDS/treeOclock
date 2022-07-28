@@ -603,7 +603,7 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
 }
 
 
-// Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
+// Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath_matrix^+)
 int move_up(Tree * itree, long i, long k){
     long num_moves = 0; // counter for the number of moves that are necessary
     if (itree->tree == NULL){
@@ -659,27 +659,25 @@ long shortest_rank_path(Tree* tree1, Tree* tree2){
 }
 
 
-// FINDPATH. Returns a path in matrix representation: each row is one move. Column 1: rank of lower node bounding interval of move, column2: 0 (rank move), 1 (nni move where children[0] of the lower node moves up), or 2 (nni move where children[1] of the lower node moves up)
-// This function only works for ranked trees
-Path findpath(Tree *start_tree, Tree *dest_tree){
-    // float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
+// FINDPATH. Returns a path in matrix representation: each row is one move. Column 1: rank of lower node bounding interval of move; column2: 0 (rank move), 1 (nni move where children[0] of the lower node moves up), or 2 (nni move where children[1] of the lower node moves up); column3: total number of moves before RNNI move represented by this row, i.e. position of the tree after this move on the path
+Path_matrix findpath(Tree *start_tree, Tree *dest_tree){
     long num_leaves = start_tree->num_leaves;
-    long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
-    Path path;
+    long max_dist = (num_leaves - 1) * (num_leaves - 2) / 2;
+    Path_matrix path;
     path.moves = malloc((max_dist + 1) * sizeof(long*)); // save moves in a table: each row (after the first) is move, column 1: rank of lower node bounding the interval of move, column 2: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
     for (long i = 0; i < max_dist + 1; i++){
-        path.moves[i] = malloc(2 * sizeof(long));
+        path.moves[i] = malloc(3 * sizeof(long));
         path.moves[i][0] = 0;
         path.moves[i][1] = 0;
+        path.moves[i][2] = 0;
     }
-    long path_index = 0; // next position on path that we want to fill with a tree pointer
+    long path_index = 0; // next position on path that we want to fill with a tree pointer (this does not include length moves, we only save trees after RNNI moves)
+    long path_length = 0; // length of path (including length moves)
     if (start_tree->tree == NULL){
         printf("Error. Start tree doesn't exist.\n");
     } else if (dest_tree->tree == NULL){
         printf("Error. Destination tree doesn't exist.\n");
     } else{
-        // remove("./output/findpath.rtree");
-        // write_tree(start_tree->tree, num_leaves, "./output/findpath.rtree"); // writing trees like this changes the running time from O(n^2) to O(n^3)
         long current_mrca; //rank of the mrca that needs to be moved down
         Tree current_tree;
         current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
@@ -687,26 +685,49 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
         for (long i = 0; i < 2 * num_leaves - 1; i++){
             current_tree.tree[i] = start_tree->tree[i];
         }
+        // This pointer is needed for finding the mrca, and doing moves (nni, rank, length)
         Tree * current_tree_pointer;
         current_tree_pointer = &current_tree;
         for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
-            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
-            // move current_mrca down iteratively
-            while(current_mrca != i){
+            // we might need to move nodes below the time of node i in dest_tree up in the current tree
+            if (current_tree.tree[i].time < dest_tree->tree[i].time){
+                path_length += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
+            }
+            // we now need to find the current MRCA and decrease its time in the tree
+            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
+            // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
+            while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
+                // We first see if we need to do length moves:
+                // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
+                // After this, we do an NNI or rank move and then repeat the while loop
+                if (current_tree.tree[current_mrca-1].time < current_tree.tree[current_mrca].time - 1){
+                    // We either need to move the node to be right above the time of the next lower node...
+                    if( current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){
+                        // Update the time to be one greater than the time of the next lower node.
+                        // This is equivalent to doing length moves, so we add the time difference to the distance
+                        path_length += current_tree.tree[current_mrca].time - (current_tree.tree[current_mrca-1].time + 1);
+                        current_tree.tree[current_mrca].time = current_tree.tree[current_mrca-1].time + 1;
+                    // Or we move the current node to be at the same position as the corresponding node in dest_tree
+                    } else{ // in this case we move the node to its final position
+                        path_length += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
+                        current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
+                        break; // the current iteration i is finished
+                    }
+                }
+                // Now do RNNI moves
                 path.moves[path_index][0] = current_mrca-1;
                 path.moves[path_index][1] = decrease_mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
-                current_mrca--;
+                path_length++;
                 path_index++;
-                // // Print progress (in 5% steps from max distance)
-                // if (count < (float) path_index / (float) max_dist){
-                //      printf("%d Percent of maximum distance reached\n", (int) (100 * count));
-                //      count += 0.05;
-                // }
+                path.moves[path_index][2] = path_length;
+                current_mrca--;
             }
+            // printf("path_index: %ld \n", path_index);
         }
         free(current_tree.tree);
+        path.length = path_length;
+        path.num_trees = path_index+1;
     }
-    path.length = path_index+1;
     return path;
 }
 
@@ -770,7 +791,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
 
 
 // returns the FINDPATH path between two given given trees as Tree_List -- runs findpath and translates path matrix to actual trees on path
-Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
+Tree_Path return_findpath(Tree *start_tree, Tree *dest_tree){
     long path_index = 0;
     long num_leaves = start_tree->num_leaves;
     Tree current_tree;
@@ -780,12 +801,14 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
         current_tree.tree[i] = start_tree->tree[i];
     }
 
-    Path fp = findpath(start_tree, dest_tree);
+    Path_matrix fp = findpath(start_tree, dest_tree);
 
     long diameter = (num_leaves - 1) * (num_leaves - 2) / 2 + 1; // this is not the diameter, but the number of trees on a path giving the diameter (= diameter + 1)
 
-    Tree_List findpath_list; // output: list of trees on FP path
-    findpath_list.num_trees = fp.length;
+    Tree_Path findpath_list; // output: list of trees on FP path
+    findpath_list.num_trees = fp.num_trees;
+    findpath_list.length = fp.length;
+    findpath_list.tree_positions = malloc(fp.num_trees * sizeof(long));
     findpath_list.trees = malloc(diameter * sizeof(Tree));
     for (long i = 0; i < diameter; i++){
         findpath_list.trees[i].num_leaves = num_leaves;
@@ -794,9 +817,12 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         findpath_list.trees[0].tree[i] = current_tree.tree[i];
     }
+    for (long i = 0; i < fp.num_trees; i++){
+        findpath_list.tree_positions[i] = fp.moves[i][2];
+    }
 
     // create actual path by doing moves starting at start_tree with the information in the matrix returned form fp above
-    while(path_index < fp.length){
+    while(path_index < fp.num_trees){
         if (fp.moves[path_index][1] == 0){
             rank_move(&current_tree, fp.moves[path_index][0]);
         }
@@ -806,12 +832,12 @@ Tree_List return_findpath(Tree *start_tree, Tree *dest_tree){
             nni_move(&current_tree, fp.moves[path_index][0], 1);
         }
         path_index++;
-        // deep copy currently last tree one path
+        // deep copy currently last tree on path
         for (long i = 0; i < 2 * num_leaves - 1; i++){
             findpath_list.trees[path_index].tree[i] = current_tree.tree[i];
         }
     }
-    for (int i = 0; i < diameter + 1; i++){
+    for (int i = 0; i <fp.num_trees; i++){
         free(fp.moves[i]);
     }
     free(fp.moves);
