@@ -34,10 +34,6 @@ tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
 tree_to_cluster_string.restype = c_char_p
 
-spr_move = lib.spr_move
-spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
-spr_move.restype = c_int
-
 same_topology = lib.same_topology
 same_topology.argtypes = [POINTER(TREE), POINTER(TREE)]
 same_topology.restype = c_int
@@ -46,57 +42,17 @@ mrca_differences = lib.mrca_differences
 mrca_differences.argtypes = [POINTER(TREE), POINTER(TREE)]
 mrca_differences.restype = c_long
 
-rankedspr_path_mrca_diff = lib.rankedspr_path_mrca_diff
-rankedspr_path_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
-rankedspr_path_mrca_diff.restype = TREE_LIST
-
-rankedspr_path_mrca_cluster_diff = lib.rankedspr_path_mrca_cluster_diff
-rankedspr_path_mrca_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
-rankedspr_path_mrca_cluster_diff.restype = TREE_LIST
-
-rankedspr_path_restricting_neighbourhood = lib.rankedspr_path_restricting_neighbourhood
-rankedspr_path_restricting_neighbourhood.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
-rankedspr_path_restricting_neighbourhood.restype = c_long
-
 sum_symmetric_cluster_diff = lib.sum_symmetric_cluster_diff
 sum_symmetric_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE)]
 sum_symmetric_cluster_diff.restype = c_long
-
-spr_neighbourhood = lib.spr_neighbourhood
-spr_neighbourhood.argtypes = [POINTER(TREE)]
-spr_neighbourhood.restype = TREE_LIST
-
-all_spr_neighbourhood = lib.all_spr_neighbourhood
-all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
-all_spr_neighbourhood.restype = TREE_LIST
 
 shortest_rank_path = lib.shortest_rank_path
 shortest_rank_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 shortest_rank_path.restype = c_long
 
-hspr_neighbourhood = lib.hspr_neighbourhood
-hspr_neighbourhood.argtypes = [POINTER(TREE)]
-hspr_neighbourhood.restype = TREE_LIST
-
-rankedspr_path_bottom_up_hspr = lib.rankedspr_path_bottom_up_hspr
-rankedspr_path_bottom_up_hspr.argtypes = [POINTER(TREE), POINTER(TREE)]
-rankedspr_path_bottom_up_hspr.restype = TREE_LIST
-
-rankedspr_path_bottom_up_hspr_dist = lib.rankedspr_path_bottom_up_hspr_dist
-rankedspr_path_bottom_up_hspr_dist.argtypes = [POINTER(TREE), POINTER(TREE)]
-rankedspr_path_bottom_up_hspr_dist.restype = c_long
-
 symmetric_cluster_diff = lib.symmetric_cluster_diff
 symmetric_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
 symmetric_cluster_diff.restype = c_long
-
-rankedspr_path_top_down_symm_diff = lib.rankedspr_path_top_down_symm_diff
-rankedspr_path_top_down_symm_diff.argtypes = [POINTER(TREE), POINTER(TREE)]
-rankedspr_path_top_down_symm_diff.restype = c_long
-
-rankedspr_path_rnni_mrca_diff = lib.rankedspr_path_rnni_mrca_diff
-rankedspr_path_rnni_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
-rankedspr_path_rnni_mrca_diff.restype = TREE_LIST
 
 rnni_neighbourhood = lib.rnni_neighbourhood
 rnni_neighbourhood.argtypes = [POINTER(TREE)]
@@ -106,9 +62,9 @@ findpath_distance = lib.findpath_distance
 findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_distance.restype = c_long
 
-findpath_path = lib.return_findpath
-findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
-findpath_path.restype = TREE_LIST
+return_findpath = lib.return_findpath
+return_findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
+return_findpath.restype = TREE_LIST
 
 random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
@@ -117,10 +73,6 @@ random_walk.restype = c_long
 mrca_list = lib.mrca_list
 mrca_list.argtypes = [POINTER(TREE), POINTER(TREE)]
 mrca_list.restype = POINTER(c_long)
-
-fp_rspr = lib.fp_rspr
-fp_rspr.argtypes = [POINTER(TREE), POINTER(TREE)]
-fp_rspr.restype = c_long
 
 decrease_mrca = lib.decrease_mrca
 decrease_mrca.argtypes = [POINTER(TREE), c_long, c_long]
