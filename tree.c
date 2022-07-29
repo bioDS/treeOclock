@@ -677,7 +677,7 @@ Tree_Path findpath(Tree *start_tree, Tree *dest_tree){
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         path.trees[0].tree[i] = start_tree->tree[i];
     }
-    // path.num_trees++;
+    path.tree_positions[0]=0;
 
     if (start_tree->tree == NULL){
         printf("Error. Start tree doesn't exist.\n");
@@ -805,6 +805,136 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
         free(current_tree.tree);
     }
     return path_index;
+}
+
+
+// FINDPATH, which stops as soon as tree number k is reached and returns that tree
+// We try to skip some length moves, but cannot skip all of them, so the running time can get quite high when a lot of length moves are performed
+Tree findpath_after_k_moves(Tree *start_tree, Tree *dest_tree, long k){
+    long num_leaves = start_tree->num_leaves;
+    long path_index = 0; // next position on path that we want to fill with a tree pointer
+    if (start_tree->tree == NULL){
+        printf("Error. Start tree doesn't exist.\n");
+    } else if (dest_tree->tree == NULL){
+        printf("Error. Destination tree doesn't exist.\n");
+    } else{
+        long current_mrca; //rank of the mrca that needs to be moved down
+        Tree current_tree;
+        current_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+        current_tree.num_leaves = num_leaves;
+        for (long i = 0; i < 2 * num_leaves - 1; i++){
+            current_tree.tree[i] = start_tree->tree[i];
+        }
+        // This pointer is needed for finding the mrca, and doing moves (nni, rank, length)
+        Tree * current_tree_pointer;
+        current_tree_pointer = &current_tree;
+        for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
+            // we might need to move nodes below the time of node i in dest_tree up in the current tree
+            if (current_tree.tree[i].time < dest_tree->tree[i].time){
+                // Save tree & distance from before the moves up, so we can recover them in case the tree we are looking for is somewhere in the move_up function
+                long old_path_index = path_index;
+                Tree previous_tree;
+                previous_tree.tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+                previous_tree.num_leaves = num_leaves;
+                for (long i = 0; i < 2 * num_leaves - 1; i++){
+                    previous_tree.tree[i] = current_tree.tree[i];
+                }
+                path_index += move_up(current_tree_pointer, i, dest_tree->tree[i].time);
+                if (path_index > k){ // then the kth tree is somewhere inside the function move_up
+                    // we now 'manually' perform move_up() until we reach our tree
+                    long j = i;
+                    // Find the highest j that needs to be moved up -- maximum is reached at root!
+                    while (previous_tree.tree[j+1].time <= k && j+1 <=2*previous_tree.num_leaves-2){
+                        j ++;
+                    }
+                    long num_moving_nodes = j - i; // number of nodes that will need to be moved
+                    // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
+                    // Find the uppermost node that needs to move up
+                    while (previous_tree.tree[j+1].time <= k+num_moving_nodes && j+1 <=2*previous_tree.num_leaves-2){
+                        j++;
+                        num_moving_nodes++;
+                    }
+                    for (long index = j; index >= i; index--){ // Do all required length moves
+                        // printf("index: %ld\n", index);
+                        while(previous_tree.tree[index].time < k + index + i){
+                            previous_tree.tree[index].time++;
+                            old_path_index++;
+                            if (old_path_index == k){;
+                                return(previous_tree);
+                            }
+                        }
+                    }
+                }
+            }
+            // we now need to find the current MRCA and decrease its time in the tree
+            current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
+            // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
+            while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
+                // We first see if we need to do length moves:
+                // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
+                // After this, we do an NNI or rank move and then repeat the while loop
+                if (current_tree.tree[current_mrca-1].time < current_tree.tree[current_mrca].time - 1){
+                    // We either need to move the node to be right above the time of the next lower node...
+                    if( current_tree.tree[current_mrca-1].time + 1 > dest_tree->tree[i].time){
+                        // Update the time to be one greater than the time of the next lower node.
+                        // This is equivalent to doing length moves, so we add the time difference to the distance
+                        // We first check if the tree we are looking for is somewhere in this sequence of length moves:
+                        if (path_index + current_tree.tree[current_mrca].time - (current_tree.tree[current_mrca-1].time + 1) > k){
+                            current_tree.tree[current_mrca].time -= k-path_index;
+                            return(current_tree);
+                        }
+                        path_index += current_tree.tree[current_mrca].time - (current_tree.tree[current_mrca-1].time + 1);
+                        current_tree.tree[current_mrca].time = current_tree.tree[current_mrca-1].time + 1;
+                    // Or we move the current node to be at the same position as the corresponding node in dest_tree
+                    } else{ // in this case we move the node to its final position
+                        // We first check if the tree we are looking for is somewhere in this sequence of length moves:
+                        if (path_index + current_tree.tree[current_mrca].time - dest_tree->tree[current_mrca].time > k){
+                            current_tree.tree[current_mrca].time -= k-path_index;
+                            return(current_tree);
+                        }
+                        path_index += current_tree.tree[current_mrca].time - dest_tree->tree[i].time;
+                        current_tree.tree[current_mrca].time = dest_tree->tree[i].time;
+                        break; // the current iteration i is finished
+                    }
+                }
+                // Now do RNNI moves
+                decrease_mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
+                current_mrca--;
+                path_index++;
+                // Check if we reached tree number k after this RNNI move:
+                if (path_index == k){
+                    return(current_tree);
+                }
+            }
+            // printf("path_index: %ld \n", path_index);
+        }
+        free(current_tree.tree);
+    }
+    printf("Error. Could not find tree at position k on FP\n");
+    exit(1);
+}
+
+
+Tree findpath_after_x_percent_tree(Tree* start_tree, Tree* dest_tree, float x){
+    // returns tree at position floor(x*d(T,R)) of FP
+    long d = findpath_distance(start_tree, dest_tree);
+    long k = x*d; // actual position of the tree we are looking for on FP path
+    Tree_Path p = findpath(start_tree, dest_tree);
+    long j = 0;
+    for(long i = 0; i < p.num_trees; i++){
+        if (p.tree_positions[i] == k){ // the tree at position k is in p.trees, so we can just return it
+            return(p.trees[i]);
+        }
+        else if (p.tree_positions[i] > k){ // in this case the tree is somewhere between p.trees[i-1] and p.trees[i] on FP
+            j = i-1;
+            break;
+        }
+    }
+    long dist_from_prev = k-p.tree_positions[j];
+    Tree output_tree = findpath_after_k_moves(&p.trees[j], dest_tree, dist_from_prev);
+    // The tree we are looking for has the same topology as p.trees[i]
+    // To get the exact tree, we now need to perform the next moves along FP, which are only length moves.
+    return(output_tree);
 }
 
 

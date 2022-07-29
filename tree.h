@@ -66,8 +66,8 @@ int move_up(Tree * itree, long i, long k);
 long shortest_rank_path(Tree* tree1, Tree* tree2);
 Tree_Path findpath(Tree *start_tree, Tree *dest_tree);
 long findpath_distance(Tree *start_tree, Tree *dest_tree);
-// Tree_Path return_findpath(Tree *start_tree, Tree *dest_tree);
-Tree findpath_kth_tree(Tree* start_tree, Tree* dest_tree);
+Tree findpath_after_k_moves(Tree* start_tree, Tree* dest_tree, long k);
+Tree findpath_after_x_percent_tree(Tree* start_tree, Tree* dest_tree, float x);
 long random_walk(Tree * tree, long k);
 
 int first_iteration(Tree_List* treelist, long node1, long node2, long r);
