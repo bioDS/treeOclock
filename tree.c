@@ -844,19 +844,18 @@ Tree findpath_after_k_moves(Tree *start_tree, Tree *dest_tree, long k){
                     // we now 'manually' perform move_up() until we reach our tree
                     long j = i;
                     // Find the highest j that needs to be moved up -- maximum is reached at root!
-                    while (previous_tree.tree[j+1].time <= k && j+1 <=2*previous_tree.num_leaves-2){
+                    while (previous_tree.tree[j+1].time <= dest_tree->tree[i].time && j+1 <=2*previous_tree.num_leaves-2){
                         j ++;
                     }
                     long num_moving_nodes = j - i; // number of nodes that will need to be moved
                     // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
                     // Find the uppermost node that needs to move up
-                    while (previous_tree.tree[j+1].time <= k+num_moving_nodes && j+1 <=2*previous_tree.num_leaves-2){
+                    while (previous_tree.tree[j+1].time <= dest_tree->tree[i].time+num_moving_nodes && j+1 <=2*previous_tree.num_leaves-2){
                         j++;
                         num_moving_nodes++;
                     }
                     for (long index = j; index >= i; index--){ // Do all required length moves
-                        // printf("index: %ld\n", index);
-                        while(previous_tree.tree[index].time < k + index + i){
+                        while(previous_tree.tree[index].time < dest_tree->tree[i].time + num_moving_nodes - (j-index)){
                             previous_tree.tree[index].time++;
                             old_path_index++;
                             if (old_path_index == k){;
@@ -930,10 +929,10 @@ Tree findpath_after_x_percent_tree(Tree* start_tree, Tree* dest_tree, float x){
             break;
         }
     }
-    long dist_from_prev = k-p.tree_positions[j];
-    Tree output_tree = findpath_after_k_moves(&p.trees[j], dest_tree, dist_from_prev);
     // The tree we are looking for has the same topology as p.trees[i]
     // To get the exact tree, we now need to perform the next moves along FP, which are only length moves.
+    long dist_from_prev = k-p.tree_positions[j];
+    Tree output_tree = findpath_after_k_moves(&p.trees[j], dest_tree, dist_from_prev);
     return(output_tree);
 }
 
