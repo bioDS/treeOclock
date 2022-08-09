@@ -381,8 +381,14 @@ long mrca(Tree * input_tree, long node1, long node2){
     while (rank1 != rank2){
         if (rank1 < rank2){
             rank1 = input_tree->tree[rank1].parent;
+            if (rank1 == -1){
+                return -1;
+            }
         } else{
             rank2 = input_tree->tree[rank2].parent;
+            if (rank2 == -1){
+                return -1;
+            }
         }
     }
     return rank1;
