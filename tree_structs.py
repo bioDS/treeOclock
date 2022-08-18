@@ -70,6 +70,10 @@ all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
 all_spr_neighbourhood.restype = TREE_LIST
 
+unlabelled_spr_neighbourhood = lib.unlabelled_spr_neighbourhood
+unlabelled_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
+unlabelled_spr_neighbourhood.restype = TREE_LIST
+
 shortest_rank_path = lib.shortest_rank_path
 shortest_rank_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 shortest_rank_path.restype = c_long
