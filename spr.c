@@ -193,7 +193,7 @@ Tree_List unlabelled_spr_neighbourhood(Tree *input_tree, int horizontal){
 
     // Initialise list of neighbours
     Tree_List neighbour_list; // output list of neighbours
-    neighbour_list.num_trees = 2 * num_leaves * (num_leaves - 1); //rough upper boung on max number of neighbours (quadratic in number of ranks + at most linear number of rank moves)
+    neighbour_list.num_trees = 2 * num_leaves * (num_leaves - 1); //rough upper bound on max number of neighbours (quadratic in number of ranks + at most linear number of rank moves)
     // printf("upper bound for number of trees: %ld\n", neighbour_list.num_trees);
     neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
     for (long i = 0; i < neighbour_list.num_trees; i++){
