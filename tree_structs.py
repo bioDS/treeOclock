@@ -30,6 +30,10 @@ class TREE_LIST(Structure):
         self.max_root_time = max_root_time
 
 
+unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
+unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
+unlabelled_rnni_neighbourhood.restype = POINTER(TREE_LIST)
+
 tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
 tree_to_cluster_string.restype = c_char_p
