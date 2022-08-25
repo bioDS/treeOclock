@@ -2,7 +2,6 @@
 // Author: Lena Collienne
 
 #include "unlabelled_rnni.h"
-#include "tree.h"
 
 
 // NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
@@ -33,17 +32,13 @@ int unlabelled_nni_move(Tree * input_tree, long rank_in_list, int child_moves_up
 // Compute Tree_List of all UNLABELLED RNNI neighbours
 // Note that some trees might appear multiple times in the output list!
 Tree_List unlabelled_rnni_neighbourhood(Tree *input_tree){
-    printf("here\n");
-    printf("num_leaves: %ld\n", input_tree->num_leaves);
     long num_leaves = input_tree->num_leaves;
-    printf("number of leaves: %ld\n", num_leaves);
 
     // Initialise list of neighbours
     Tree_List neighbour_list; // output list of neighbours
     neighbour_list.num_trees = 2 * (num_leaves - 1); // upper bound on max number of neighbours at most 2*(n-1) if every interval has NNI moves
     neighbour_list.trees = malloc(neighbour_list.num_trees * sizeof(Tree));
     for (long i = 0; i < neighbour_list.num_trees; i++){
-        printf("i: %ld\n", i);
         neighbour_list.trees[i].num_leaves = num_leaves;
         neighbour_list.trees[i].tree = malloc((num_leaves - 1) * sizeof(Node));
     }
@@ -58,7 +53,6 @@ Tree_List unlabelled_rnni_neighbourhood(Tree *input_tree){
     }
     // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
     for (long r=0; r<num_leaves-2; r++){
-        printf("iteration: %ld\n", r);
         // Check if we can do rank move:
         if (input_tree->tree[r].parent != r+1){
             rank_move(neighbour, r);

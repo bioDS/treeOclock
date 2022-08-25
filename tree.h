@@ -27,11 +27,11 @@ typedef struct Tree_List{
   long max_root_time;
 } Tree_List;
 
-
 typedef struct Path{
   long ** moves;
   long length;
 } Path;
+
 
 int get_num_digits(int integer);
 Tree* deep_copy(Tree* tree);
