@@ -32,7 +32,11 @@ class TREE_LIST(Structure):
 
 unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
 unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
-unlabelled_rnni_neighbourhood.restype = POINTER(TREE_LIST)
+unlabelled_rnni_neighbourhood.restype = TREE_LIST
+
+unlabelled_nni_move = lib.unlabelled_nni_move
+unlabelled_nni_move.argtypes = [POINTER(TREE), c_long, c_int]
+unlabelled_nni_move.restype = c_int
 
 tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
