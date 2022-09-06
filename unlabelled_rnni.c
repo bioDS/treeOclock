@@ -27,11 +27,15 @@ Tree_List unlabelled_rnni_neighbourhood(Tree *input_tree){
     for (long i = 0; i < num_leaves - 1; i++){
         neighbour->tree[i] = input_tree->tree[i];
     }
-    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list)
     for (long r=0; r<num_leaves-2; r++){
         // Check if we can do rank move:
         if (input_tree->tree[r].parent != r+1){
             rank_move(neighbour, r);
+            // always reset neighbour to be input_tree after every move
+            for (long i = 0; i < num_leaves - 1; i++){
+                neighbour->tree[i] = input_tree->tree[i];
+            }
         } else{ // otherwise, we can perform an NNI move
             nni_move(neighbour, r, 0);
             // Add neighbour to neighbour_list:

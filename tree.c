@@ -133,7 +133,7 @@ int same_tree(Tree* tree1, Tree* tree2){
 }
 
 
-// NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
+// NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_moves_up (index) of the lower node up
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
