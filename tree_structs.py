@@ -34,9 +34,13 @@ unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
 unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
 unlabelled_rnni_neighbourhood.restype = TREE_LIST
 
-unlabelled_nni_move = lib.unlabelled_nni_move
-unlabelled_nni_move.argtypes = [POINTER(TREE), c_long, c_int]
-unlabelled_nni_move.restype = c_int
+nni_move = lib.nni_move
+nni_move.argtypes = [POINTER(TREE), c_long, c_int]
+nni_move.restype = c_int
+
+rank_move = lib.rank_move
+rank_move.argtypes = [POINTER(TREE), c_long]
+rank_move.restype = c_int
 
 tree_to_cluster_string = lib.tree_to_string
 tree_to_cluster_string.argtypes = [POINTER(TREE)]
