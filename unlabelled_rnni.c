@@ -4,30 +4,6 @@
 #include "unlabelled_rnni.h"
 
 
-// NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_stays (index) of the lower node up
-int unlabelled_nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
-    if (input_tree->tree == NULL){
-        printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
-    } else{
-        if(input_tree->tree[rank_in_list].parent != rank_in_list + 1){
-            printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank_in_list, rank_in_list + 1);
-            return 1;
-        }
-        int child_moved_up;
-        for (int i = 0; i < 2; i++){
-            if (input_tree->tree[rank_in_list+1].children[i] != rank_in_list){ //find the child of the node of rank_in_list k+1 that is not the node of rank_in_list k
-                // update parent/children relations to get nni neighbour
-                input_tree->tree[input_tree->tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
-                input_tree->tree[input_tree->tree[rank_in_list].children[child_moves_up]].parent = rank_in_list+1;
-                child_moved_up = input_tree->tree[rank_in_list].children[child_moves_up];
-                input_tree->tree[rank_in_list].children[child_moves_up] = input_tree->tree[rank_in_list+1].children[i]; //update children
-                input_tree->tree[rank_in_list+1].children[i] = child_moved_up;
-            }
-        }
-    }
-    return 0;
-}
-
 
 // Compute Tree_List of all UNLABELLED RNNI neighbours
 // Note that some trees might appear multiple times in the output list!
