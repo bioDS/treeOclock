@@ -19,8 +19,8 @@ int get_num_digits(int integer){
 Tree* deep_copy(Tree* tree){
     // deep copy tree
     long num_leaves = tree->num_leaves;
-    Tree* output = malloc(sizeof(Node*) + 3 * sizeof(long));
-    output->tree = malloc((2 * num_leaves - 1) * sizeof(Node));
+    Tree* output = malloc(sizeof(Node*) + 4 * sizeof(long));
+    output->tree = calloc((2 * num_leaves - 1), sizeof(Node));
     output->num_leaves = num_leaves;
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         output->tree[i] = tree->tree[i];
@@ -133,73 +133,69 @@ int same_tree(Tree* tree1, Tree* tree2){
 }
 
 
-// NNI move on edge bounded by rank rank_in_list and rank_in_list + 1, moving child_moves_up (index) of the lower node up
-int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up){
+// NNI move on edge bounded by rank and rank + 1, moving child_moves_up (index) of the lower node up
+int nni_move(Tree * input_tree, long rank, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
-    } else{
-        if(input_tree->tree[rank_in_list].parent != rank_in_list + 1){
-            printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank_in_list, rank_in_list + 1);
-            return 1;
-        } else{
-            int child_moved_up;
-            for (int i = 0; i < 2; i++){
-                if (input_tree->tree[rank_in_list+1].children[i] != rank_in_list){ //find the child of the node of rank_in_list k+1 that is not the node of rank_in_list k
-                    // update parent/children relations to get nni neighbour
-                    input_tree->tree[input_tree->tree[rank_in_list+1].children[i]].parent = rank_in_list; //update parents
-                    input_tree->tree[input_tree->tree[rank_in_list].children[child_moves_up]].parent = rank_in_list+1;
-                    child_moved_up = input_tree->tree[rank_in_list].children[child_moves_up];
-                    input_tree->tree[rank_in_list].children[child_moves_up] = input_tree->tree[rank_in_list+1].children[i]; //update children
-                    input_tree->tree[rank_in_list+1].children[i] = child_moved_up;
-                }
-            }
+        return 1;
+    }
+    Node upper_node = input_tree->tree[rank + 1];
+    Node lower_node = input_tree->tree[rank];
+    if(lower_node.parent != rank + 1){
+        printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank, rank + 1);
+        return 1;
+    }
+    int child_moved_up;
+    for (int i = 0; i < 2; i++){
+        if (upper_node.children[i] != rank){ //find the child of the node of rank k+1 that is not the node of rank k
+            // update parent/children relations to get nni neighbour
+            input_tree->tree[upper_node.children[i]].parent = rank;
+            input_tree->tree[lower_node.children[child_moves_up]].parent = rank+1;
+            child_moved_up = lower_node.children[child_moves_up];
+            lower_node.children[child_moves_up] = upper_node.children[i];
+            upper_node.children[i] = child_moved_up;
         }
     }
     return 0;
 }
 
 
-// Make a rank move on tree between nodes of rank rank and rank + 1 (if possible)
-int rank_move(Tree * input_tree, long rank_in_list){
+// Make a rank move on tree between nodes of rank and rank + 1 (if possible)
+int rank_move(Tree * input_tree, long rank){
     if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
         return 1;
-    } else{
-        if (input_tree->tree[rank_in_list].parent == rank_in_list + 1){
-            printf("error\n");            printf("Error. No rank move possible on tree %s. The interval [%ld,%ld] is an edge!\n", tree_to_string(input_tree), rank_in_list, rank_in_list + 1);
-        } else{
-            // update parents of nodes that swap ranks
-            long upper_parent;
-            upper_parent = input_tree->tree[rank_in_list + 1].parent;
-            input_tree->tree[rank_in_list + 1].parent = input_tree->tree[rank_in_list].parent;
-            input_tree->tree[rank_in_list].parent = upper_parent;
+    }
+    if (input_tree->tree[rank].parent == rank + 1){
+        printf("Error. No rank move possible on tree %s. The interval [%ld,%ld] is an edge!\n", tree_to_string(input_tree), rank, rank + 1);
+        return 1;
+    }
+    Node upper_node = input_tree->tree[rank + 1];
+    Node lower_node = input_tree->tree[rank];
 
-            for (int i = 0; i < 2; i++){
-                // update children of nodes that swap ranks
-                long upper_child = input_tree->tree[rank_in_list + 1].children[i];
-                input_tree->tree[rank_in_list + 1].children[i] = input_tree->tree[rank_in_list].children[i];
-                input_tree->tree[rank_in_list].children[i] = upper_child;
-            }
-            for (int i = 0; i < 2; i++){
-                // update parents of children of nodes that swap ranks
-                input_tree->tree[input_tree->tree[rank_in_list + 1].children[i]].parent = rank_in_list + 1; 
-                input_tree->tree[input_tree->tree[rank_in_list].children[i]].parent = rank_in_list;
-            }
-            for (int i = 0; i < 2; i ++){
-                // update children of parents of nodes that swap rank
-                //first case: nodes that swap ranks share a parent. In this case nothing needs to be changed
-                if (input_tree->tree[rank_in_list + 1].parent == input_tree->tree[rank_in_list].parent){
-                    break;
-                }
-                else{
-                    if (input_tree->tree[input_tree->tree[rank_in_list + 1].parent].children[i] == rank_in_list){ //parent pointer of input_tree->tree[rank_in_list + 1] is already set correctly!
-                        input_tree->tree[input_tree->tree[rank_in_list + 1].parent].children[i] = rank_in_list + 1;
-                    }
-                    if (input_tree->tree[input_tree->tree[rank_in_list].parent].children[i] == rank_in_list + 1){
-                        input_tree->tree[input_tree->tree[rank_in_list].parent].children[i] = rank_in_list;
-                    }
-                }
-            }
+    // update parents of nodes that swap ranks
+    long upper_parent;
+    upper_parent = upper_node.parent;
+    upper_node.parent = lower_node.parent;
+    lower_node.parent = upper_parent;
+
+    for (int i = 0; i < 2; i++){
+        // update children of nodes that swap ranks
+        long upper_child = upper_node.children[i];
+        upper_node.children[i] = lower_node.children[i];
+        lower_node.children[i] = upper_child;
+        // update parents of children of nodes that swap ranks
+        input_tree->tree[upper_node.children[i]].parent ++; 
+        input_tree->tree[lower_node.children[i]].parent --;
+        // update children of parents of nodes that swap rank
+        if (upper_node.parent == lower_node.parent){
+            break;
+        }
+        if (input_tree->tree[upper_node.parent].children[i] == rank){
+            input_tree->tree[upper_node.parent].children[i] ++;
+        }
+        if (input_tree->tree[lower_node.parent].children[i] == rank + 1){
+            input_tree->tree[lower_node.parent].children[i] --;
         }
     }
     return 0;
