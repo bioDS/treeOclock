@@ -262,14 +262,12 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
     // long diff = sum_symmetric_cluster_diff(current_tree, dest_tree);
     long diff = mrca_differences(current_tree, dest_tree, 1) + sum_symmetric_cluster_diff(current_tree, dest_tree);
     while (diff > 0){
-        // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
             long new_diff =  mrca_differences(neighbour_pointer, dest_tree, 1) + sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
             // long new_diff = sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
-            // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
             // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_diff < diff){
                 diff = new_diff;
@@ -321,13 +319,11 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
 
     long mrca_diff = mrca_differences(current_tree, dest_tree, 1);
     while (mrca_diff > 0){
-        // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
             long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, 1);
-            // printf("neighbour tree: %s\n", tree_to_string(neighbour_pointer));
             // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_mrca_diff < mrca_diff){
                 mrca_diff = new_mrca_diff;
@@ -379,7 +375,6 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
 
     int change = 0; //indicates whether we could improve the mrca in the previous iteration (0: yes, 1: no); this will turn to 1 once we are done with RNNI moves (on a path to dest_tree we assume that only HSPR moves follow)
     while (change == 0){
-        // printf("current tree: %s\n", tree_to_string(current_tree));
         Tree_List neighbours;
         if (rank == 0){
             neighbours = rank_neighbourhood(current_tree);
@@ -397,7 +392,6 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
             change = 0;
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            // printf("neighbouring tree: %s\n", tree_to_string(neighbour_pointer));
             long *neighbour_mrcas = mrca_list(neighbour_pointer, dest_tree);
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
@@ -525,7 +519,6 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
         long index=0;
         // first neighbour : rank move
         long mrca_rank = mrca(current_tree, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]); //find currently considered mrca and check if the interval below it allows rank move
-        // printf("current tree: %s, mrca: %ld, nodes: %ld, %ld\n", tree_to_string(current_tree), mrca_rank, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]);
         if (hspr == 1 && (current_tree->tree[mrca_rank].children[0] != mrca_rank-1 &&
         current_tree->tree[mrca_rank].children[1] != mrca_rank-1) && mrca_rank != 1){
             Tree* neighbour_pointer = &neighbours.trees[index];
@@ -684,9 +677,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
             distance++;
         }
         visited_at_distance[distance-1]--; //one less tree with distance-1 in queue
-        // printf("afterwards: d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
-        // printf("current tree: %s\n", tree_to_string(current_tree));
-        // printf("current distance: %ld\n", distance);
         // Find the highest node (at position r) for which clusters induced by current_tree and dest_tree are different
         for (long i = 2*num_leaves-3; i >= num_leaves; i--){
             if (symmetric_cluster_diff(current_tree, dest_tree, i) > 0){
@@ -701,28 +691,16 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
             if (symm_diff < min_symm_diff){
                 min_symm_diff = symm_diff;
             }
-            // printf("neighbour: %s, diff: %ld\n", tree_to_string(&neighbours.trees[i]), symm_diff);
         }
         if (min_symm_diff == symmetric_cluster_diff(current_tree, dest_tree, r)){
-            printf("No improvement in symmetric cluster difference possible for any neighbours of %s\n", tree_to_string(current_tree));
+            printf("No improvement in symmetric cluster difference possible for any neighbours.\n");
         }
-        // printf("number of neighbours: %ld\n", neighbours.num_trees);
-        // // print neighbouring trees (for testing)
-        // printf("num_iterations: %ld, neighbour trees:\n", num_iterations);
-        // for (long i = 0; i < neighbours.num_trees; i++){
-        //     for (long j = 0; j < 2*num_leaves-1; j++){
-        //         printf("children: %ld, %ld, parent: %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1], neighbours.trees[i].tree[j].parent);
-        //     }
-        // }
-
+        
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
-        // printf("min symm diff: %ld\n", min_symm_diff);
-        // printf("corresponding trees:\n");
         for(int i = 0; i < neighbours.num_trees; i++){
             long symm_diff = symmetric_cluster_diff(&neighbours.trees[i], dest_tree, r);
             if (symm_diff == min_symm_diff){
-                // printf("%s\n", tree_to_string(&neighbours.trees[i]));
                 queue_push_tail(to_visit, &neighbours.trees[i]);
                 visited_at_distance[distance]++; // add one for every tree that is added to queue
             }
@@ -920,10 +898,7 @@ long fp_rspr(Tree* tree1, Tree* tree2){
             // deep copy tree
             Tree* neighbour = deep_copy(current_tree);
             // decrease the mrca of mrca in current_tree
-            // printf("%s\n", tree_to_string(neighbour));
             decrease_mrca(neighbour, tree2->tree[i].children[0], tree2->tree[i].children[1]);
-            // printf("%s\n", tree_to_string(neighbour));
-            // printf("%s\n", tree_to_string(current_tree));
             // check if no mrca has been moved in wrong direction:
             long* n_mrca_list = mrca_list(neighbour, tree2);
             long* c_mrca_list = mrca_list(current_tree, tree2);
@@ -935,8 +910,6 @@ long fp_rspr(Tree* tree1, Tree* tree2){
                 }
                 if (i < num_leaves-1 && abs(i+num_leaves-n_mrca_list[i+num_leaves]) > abs(i+num_leaves-c_mrca_list[i+num_leaves])){ // an mrca has been moved in the wrong direction
                     take_neighbour = 1;
-                    // printf("neighbour: %s\n", tree_to_string(neighbour));
-                    // printf("i: %ld, mrca_list: %ld, %ld\n", i ,n_mrca_list[i+num_leaves],c_mrca_list[i+num_leaves]);
                 }
             }
             if(take_neighbour == 1){
@@ -944,14 +917,11 @@ long fp_rspr(Tree* tree1, Tree* tree2){
             } else{
                 path_length++;
                 current_mrca--;
-                // printf("pathlength: %ld\n", path_length);
                 // update current_tree
                 for (long i = 0; i < 2 * num_leaves - 1; i++){
                     current_tree->tree[i] = neighbour->tree[i];
                 }
-
             }
-            printf("%s\n", tree_to_string(current_tree));
         }
     }
     return(path_length); // this only happens if the entire path consists of RNNI moves only

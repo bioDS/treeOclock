@@ -35,7 +35,6 @@ typedef struct Path{
 
 int get_num_digits(int integer);
 Tree* deep_copy(Tree* tree);
-char* tree_to_string(Tree * input_tree);
 
 int same_topology(Tree* tree1, Tree* tree2);
 int same_tree(Tree* tree1, Tree* tree2);

@@ -40,87 +40,6 @@ int print_tree(Tree* tree){
 }
 
 
-// Return tree as string in cluster format -- for testing purposes
-char* tree_to_string(Tree * input_tree){
-    if (input_tree->tree == NULL){
-        printf("Error. Can't write tree. Given tree doesn't exist.\n");
-        return(NULL);
-    } else{
-        long num_leaves = input_tree->num_leaves;
-        //Deep copy start tree to get tree that we can manipulate
-        Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
-        current_tree->num_leaves = num_leaves;
-        current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
-        for (long i = 0; i < 2 * num_leaves - 1; i++){
-            current_tree->tree[i] = input_tree->tree[i];
-        }
-
-        int num_digits_n = get_num_digits(current_tree->num_leaves); // number of digits of the int num_leaves
-        long max_str_length = 2 * num_leaves * num_leaves * num_digits_n; //upper bound for the maximum length of a tree as string
-        char *tree_str = malloc(2 * max_str_length * sizeof(char));
-
-        // // Check if input tree is 'correct'
-        // for (int i = 0; i < 2 * num_leaves - 1; i++){
-        //     printf("Node %d, Parent %ld, Children %ld and %ld\n", i, current_tree->tree[i].parent, current_tree->tree[i].children[0], current_tree->tree[i].children[1]);
-        // }
-
-        // create matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
-        long ** clusters = malloc((num_leaves - 1) * sizeof(long *));
-        for (long i = 0; i < num_leaves - 1; i++){
-            clusters[i] = malloc((num_leaves) * sizeof(long));
-        }
-
-        for (long i = 0; i < num_leaves ; i++){
-            for (long j = 0; j < num_leaves - 1; j++){
-                clusters[j][i] = 0; //initialise all entries to be 0
-            }
-            long j = i;
-            while (current_tree->tree[j].parent != -1){
-                j = current_tree->tree[j].parent;
-                // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
-                clusters[j - num_leaves][i] = 1;
-            }
-            clusters[num_leaves - 2][i] = 1;
-        }
-
-        // convert matrix into output string tree_str
-        sprintf(tree_str, "[{");
-        long tree_str_pos; //last position in tree_str that is filled with a character
-        for (long i = 0; i < num_leaves - 1; i++){
-            for (long j = 0; j < num_leaves; j++){
-                if (clusters[i][j] == 1){
-                    char leaf_str[num_digits_n + 1];
-                    sprintf(leaf_str, "%ld,", j+1);
-                    strcat(tree_str, leaf_str);
-                }
-            }
-            tree_str_pos = strlen(tree_str) - 1;
-            tree_str[tree_str_pos] = '\0'; // delete last comma
-            strcat(tree_str, "}:"); // end of cluster, next we add time
-
-            // retrieve the time of the current node (i.e. cluster) as string/ char*
-            long num_digits_time = get_num_digits(current_tree->tree[i+num_leaves].time);
-            char time_str[num_digits_time + 1];
-            sprintf(time_str, "%ld", current_tree->tree[i+num_leaves].time);
-            strcat(tree_str, time_str);
-
-            // beginning of next cluster
-            strcat(tree_str, ",{");
-            tree_str_pos = strlen(tree_str)-1;
-        }
-        tree_str[strlen(tree_str) - 2] = '\0'; // delete , at end of tree_str
-        strcat(tree_str, "]");
-
-        for (long i = 0; i < num_leaves - 1; i++){
-            free(clusters[i]);
-        }
-        free(clusters);
-
-        return(tree_str);
-    }
-}
-
-
 // Check whether two trees have the same (ranked) tree topology -- return 0 if this is the case, 1 otherwise
 int same_topology(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
@@ -180,7 +99,7 @@ int rank_move(Tree * input_tree, long rank){
         return 1;
     }
     if (input_tree->tree[rank].parent == rank + 1){
-        printf("Error. No rank move possible on tree %s. The interval [%ld,%ld] is an edge!\n", tree_to_string(input_tree), rank, rank + 1);
+        printf("Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank, rank + 1);
         return 1;
     }
     Node* upper_node;

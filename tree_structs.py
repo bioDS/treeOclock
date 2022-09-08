@@ -42,10 +42,6 @@ rank_move = lib.rank_move
 rank_move.argtypes = [POINTER(TREE), c_long]
 rank_move.restype = c_int
 
-tree_to_cluster_string = lib.tree_to_string
-tree_to_cluster_string.argtypes = [POINTER(TREE)]
-tree_to_cluster_string.restype = c_char_p
-
 spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
