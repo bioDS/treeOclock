@@ -150,21 +150,23 @@ int nni_move(Tree * input_tree, long rank, int child_moves_up){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
         return 1;
     }
-    Node upper_node = input_tree->tree[rank + 1];
-    Node lower_node = input_tree->tree[rank];
-    if(lower_node.parent != rank + 1){
+    Node* upper_node;
+    upper_node = &input_tree->tree[rank + 1];
+    Node* lower_node;
+    lower_node = &input_tree->tree[rank];
+    if(lower_node->parent != rank + 1){
         printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank, rank + 1);
         return 1;
     }
     int child_moved_up;
     for (int i = 0; i < 2; i++){
-        if (upper_node.children[i] != rank){ //find the child of the node of rank k+1 that is not the node of rank k
+        if (upper_node->children[i] != rank){ //find the child of the node of rank k+1 that is not the node of rank k
             // update parent/children relations to get nni neighbour
-            input_tree->tree[upper_node.children[i]].parent = rank;
-            input_tree->tree[lower_node.children[child_moves_up]].parent = rank+1;
-            child_moved_up = lower_node.children[child_moves_up];
-            lower_node.children[child_moves_up] = upper_node.children[i];
-            upper_node.children[i] = child_moved_up;
+            input_tree->tree[upper_node->children[i]].parent = rank;
+            input_tree->tree[lower_node->children[child_moves_up]].parent = rank+1;
+            child_moved_up = lower_node->children[child_moves_up];
+            lower_node->children[child_moves_up] = upper_node->children[i];
+            upper_node->children[i] = child_moved_up;
         }
     }
     return 0;
@@ -181,32 +183,37 @@ int rank_move(Tree * input_tree, long rank){
         printf("Error. No rank move possible on tree %s. The interval [%ld,%ld] is an edge!\n", tree_to_string(input_tree), rank, rank + 1);
         return 1;
     }
-    Node upper_node = input_tree->tree[rank + 1];
-    Node lower_node = input_tree->tree[rank];
+    Node* upper_node;
+    upper_node = &input_tree->tree[rank + 1];
+    Node* lower_node;
+    lower_node = &input_tree->tree[rank];
 
     // update parents of nodes that swap ranks
     long upper_parent;
-    upper_parent = upper_node.parent;
-    upper_node.parent = lower_node.parent;
-    lower_node.parent = upper_parent;
+    upper_parent = upper_node->parent;
+    upper_node->parent = lower_node->parent;
+    lower_node->parent = upper_parent;
+
 
     for (int i = 0; i < 2; i++){
         // update children of nodes that swap ranks
-        long upper_child = upper_node.children[i];
-        upper_node.children[i] = lower_node.children[i];
-        lower_node.children[i] = upper_child;
+        long upper_child = upper_node->children[i];
+        upper_node->children[i] = lower_node->children[i];
+        lower_node->children[i] = upper_child;
         // update parents of children of nodes that swap ranks
-        input_tree->tree[upper_node.children[i]].parent ++; 
-        input_tree->tree[lower_node.children[i]].parent --;
+        input_tree->tree[upper_node->children[i]].parent ++; 
+        input_tree->tree[lower_node->children[i]].parent --;
+    }
+    for (int i = 0; i < 2; i ++){
         // update children of parents of nodes that swap rank
-        if (upper_node.parent == lower_node.parent){
+        if (upper_node->parent == lower_node->parent){
             break;
         }
-        if (input_tree->tree[upper_node.parent].children[i] == rank){
-            input_tree->tree[upper_node.parent].children[i] ++;
+        if (input_tree->tree[upper_node->parent].children[i] == rank){
+            input_tree->tree[upper_node->parent].children[i] ++;
         }
-        if (input_tree->tree[lower_node.parent].children[i] == rank + 1){
-            input_tree->tree[lower_node.parent].children[i] --;
+        if (input_tree->tree[lower_node->parent].children[i] == rank + 1){
+            input_tree->tree[lower_node->parent].children[i] --;
         }
     }
     return 0;
@@ -795,7 +802,6 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
             current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
             // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
             while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
-                print_tree(current_tree_pointer);
                 // We first see if we need to do length moves:
                 // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
                 // After this, we do an NNI or rank move and then repeat the while loop
