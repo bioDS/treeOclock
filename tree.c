@@ -29,6 +29,17 @@ Tree* deep_copy(Tree* tree){
 }
 
 
+int print_tree(Tree* tree){
+    // print parents and children for each node in tree
+    long num_leaves = tree->num_leaves;
+    long num_nodes = 2 * num_leaves - 1;
+    for (long rank = 0; rank < num_nodes; rank++){
+        printf("Node at rank %ld: parent %ld, children %ld, %ld\n", rank, tree->tree[rank].parent, tree->tree[rank].children[0], tree->tree[rank].children[1]);
+    }
+    return 0;
+}
+
+
 // Return tree as string in cluster format -- for testing purposes
 char* tree_to_string(Tree * input_tree){
     if (input_tree->tree == NULL){
@@ -784,6 +795,7 @@ long findpath_distance(Tree *start_tree, Tree *dest_tree){
             current_mrca = mrca(current_tree_pointer, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]); //rank of the current mrca (i.e. index in the list of nodes representing the tree)
             // move current_mrca down -- one rank or NNI move per iteration of this loop, but multiple length moves (which are summarised to one 'jump')
             while(current_tree.tree[current_mrca].time != dest_tree->tree[i].time){
+                print_tree(current_tree_pointer);
                 // We first see if we need to do length moves:
                 // We need to move the current node down by length moves if its time is greater than the time  of the next lower node + 1
                 // After this, we do an NNI or rank move and then repeat the while loop
