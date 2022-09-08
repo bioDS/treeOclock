@@ -4,18 +4,6 @@
 #include "tree.h"
 
 
-// Number of digits of an integer -- needed to get an upper bound of the length of an input tree as string (when reading from a file)
-int get_num_digits(int integer){
-    int n = integer;
-    int num_digits = 0;
-    while(n != 0){
-        n /= 10;
-        num_digits++;
-    }
-    return num_digits;
-}
-
-
 Node empty_node(){
     Node new_node;
     new_node.parent = -1;
