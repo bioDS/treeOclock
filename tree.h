@@ -33,7 +33,8 @@ typedef struct Path{
 } Path;
 
 
-int get_num_digits(int integer);
+Node empty_node();
+Tree* empty_tree(long num_leaves);
 Tree* deep_copy(Tree* tree);
 
 int same_topology(Tree* tree1, Tree* tree2);

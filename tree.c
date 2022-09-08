@@ -16,7 +16,6 @@ Node empty_node(){
 
 Tree* empty_tree(long num_leaves){
     // initalise tree on num_leaves leaves
-    long num_nodes = 2 * num_leaves - 1;
     Tree* new_tree = malloc(sizeof(Node*) + 4 * sizeof(long));
     new_tree->tree = calloc((2 * num_leaves - 1), sizeof(Node));
     new_tree->num_leaves = num_leaves;
