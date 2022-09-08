@@ -16,16 +16,38 @@ int get_num_digits(int integer){
 }
 
 
+Node empty_node(){
+    Node new_node;
+    new_node.parent = -1;
+    new_node.children[0] = -1;
+    new_node.children[1] = -1;
+    new_node.time = -1;
+    return new_node;
+}
+
+
+Tree* empty_tree(long num_leaves){
+    // initalise tree on num_leaves leaves
+    long num_nodes = 2 * num_leaves - 1;
+    Tree* new_tree = malloc(sizeof(Node*) + 4 * sizeof(long));
+    new_tree->tree = calloc((2 * num_leaves - 1), sizeof(Node));
+    new_tree->num_leaves = num_leaves;
+    for (long i = 0; i < 2 * num_leaves - 1; i++){
+        Node new_node = empty_node();
+        new_tree->tree[i] = new_node;
+    }
+    return new_tree;
+}
+
+
 Tree* deep_copy(Tree* tree){
     // deep copy tree
     long num_leaves = tree->num_leaves;
-    Tree* output = malloc(sizeof(Node*) + 4 * sizeof(long));
-    output->tree = calloc((2 * num_leaves - 1), sizeof(Node));
-    output->num_leaves = num_leaves;
+    Tree* tree_copy = empty_tree(num_leaves);
     for (long i = 0; i < 2 * num_leaves - 1; i++){
-        output->tree[i] = tree->tree[i];
+        tree_copy->tree[i] = tree->tree[i];
     }
-    return(output);
+    return tree_copy;
 }
 
 
