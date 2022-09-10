@@ -260,13 +260,13 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
     index+=1;
 
     // long diff = sum_symmetric_cluster_diff(current_tree, dest_tree);
-    long diff = mrca_differences(current_tree, dest_tree, 1) + sum_symmetric_cluster_diff(current_tree, dest_tree);
+    long diff = mrca_differences(current_tree, dest_tree, TRUE) + sum_symmetric_cluster_diff(current_tree, dest_tree);
     while (diff > 0){
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long new_diff =  mrca_differences(neighbour_pointer, dest_tree, 1) + sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
+            long new_diff =  mrca_differences(neighbour_pointer, dest_tree, TRUE) + sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
             // long new_diff = sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
             // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_diff < diff){
@@ -317,13 +317,13 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
     }
     index+=1;
 
-    long mrca_diff = mrca_differences(current_tree, dest_tree, 1);
+    long mrca_diff = mrca_differences(current_tree, dest_tree, FALSE);
     while (mrca_diff > 0){
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
         for (long i = 0; i < neighbours.num_trees; i++){
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, 1);
+            long new_mrca_diff =  mrca_differences(neighbour_pointer, dest_tree, FALSE);
             // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_mrca_diff < mrca_diff){
                 mrca_diff = new_mrca_diff;
