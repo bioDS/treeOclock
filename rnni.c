@@ -96,26 +96,25 @@ int decrease_mrca(Tree* tree, long node1, long node2){
 
 
 // Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
-int move_up(Tree * itree, long i, long k){
+int move_up(Tree * tree, long lowest_moving_node, long k){
+    long num_nodes = 2 * tree->num_leaves - 1;
     long num_moves = 0; // counter for the number of moves that are necessary
-    long j = i;
-    // Find the highest j that needs to be moved up -- maximum is reached at root!
-    while (itree->tree[j+1].time <= k && j+1 <=2*itree->num_leaves-2){
-        j ++;
+    long highest_moving_node = lowest_moving_node;
+    // Find highest j that needs to be moved up -- maximum is reached at root!
+    while (tree->tree[highest_moving_node+1].time <= k && highest_moving_node+1 <= num_nodes - 1){
+        highest_moving_node ++;
     }
-    long num_moving_nodes = j - i; // number of nodes that will need to be moved
-    // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
+    long num_moving_nodes = highest_moving_node - lowest_moving_node;
+    // number of nodes that will need to be moved
     // Find the uppermost node that needs to move up
-    while (itree->tree[j+1].time <= k+num_moving_nodes && j+1 <=2*itree->num_leaves-2){
-        j++;
+    while (tree->tree[highest_moving_node+1].time <= k+num_moving_nodes && highest_moving_node+1 <= num_nodes - 1){
+        highest_moving_node++;
         num_moving_nodes++;
     }
-    // Now j is the index of the uppermost node whose time needs to be increased.
-    // If j is above k, then we need to move it to time[j]+k
-    // In general, the nodes that have index between i and j need to end up having time k+index-i
-    for (long index = i; index <= j; index++){ // Do all required length moves
-        num_moves += k+index-i - itree->tree[index].time;
-        itree->tree[index].time = k+index-i;
+    // Update times of nodes (moving_node) between i and highest_moving_node to k+moving_node-i
+    for (long moving_node = lowest_moving_node; moving_node <= highest_moving_node; moving_node++){ // Do all required length moves
+        num_moves += k + moving_node - lowest_moving_node - tree->tree[moving_node].time;
+        tree->tree[moving_node].time = k + moving_node - lowest_moving_node;
     }
     return num_moves;
 }
