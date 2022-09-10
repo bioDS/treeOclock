@@ -896,7 +896,7 @@ long fp_rspr(Tree* tree1, Tree* tree2){
         long current_mrca = mrca(current_tree, tree2->tree[i].children[0], tree2->tree[i].children[1]);
         while (current_mrca > i){
             // deep copy tree
-            Tree* neighbour = deep_copy(current_tree);
+            Tree* neighbour = new_tree_copy(current_tree);
             // decrease the mrca of mrca in current_tree
             decrease_mrca(neighbour, tree2->tree[i].children[0], tree2->tree[i].children[1]);
             // check if no mrca has been moved in wrong direction:

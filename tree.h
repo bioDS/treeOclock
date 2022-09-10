@@ -41,13 +41,15 @@ typedef struct Path{
 
 Node empty_node();
 Tree* empty_tree(long num_leaves);
-Tree* deep_copy(Tree* tree);
+void copy_tree(Tree* tree, Tree* to_copy_tree);
+Tree* new_tree_copy(Tree* tree);
+void print_tree(Tree* tree);
 
 int same_topology(Tree* tree1, Tree* tree2);
 int same_tree(Tree* tree1, Tree* tree2);
 
 long mrca(Tree * input_tree, long node1, long node2);
-long* mrca_list(Tree* tree1, Tree* tree2);
+long* mrca_array(Tree* tree1, Tree* tree2);
 long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_parents);
 
 long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2);
