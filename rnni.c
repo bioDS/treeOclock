@@ -5,11 +5,11 @@
 
 
 // NNI move on edge bounded by rank and rank + 1, moving child_moves_up (index) of the lower node up
-int nni_move(Tree* input_tree, long rank, int child_moves_up){
+int nni_move(Tree* tree, long rank, int child_moves_up){
     Node* upper_node;
-    upper_node = &input_tree->tree[rank + 1];
+    upper_node = &tree->tree[rank + 1];
     Node* lower_node;
-    lower_node = &input_tree->tree[rank];
+    lower_node = &tree->tree[rank];
     if(lower_node->parent != rank + 1){
         printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank, rank + 1);
         return EXIT_FAILURE;
@@ -18,8 +18,8 @@ int nni_move(Tree* input_tree, long rank, int child_moves_up){
     for (int i = 0; i < 2; i++){
         if (upper_node->children[i] != rank){ //find the child of the node of rank k+1 that is not the node of rank k
             // update parent/children relations to get nni neighbour
-            input_tree->tree[upper_node->children[i]].parent = rank;
-            input_tree->tree[lower_node->children[child_moves_up]].parent = rank+1;
+            tree->tree[upper_node->children[i]].parent = rank;
+            tree->tree[lower_node->children[child_moves_up]].parent = rank+1;
             child_moved_up = lower_node->children[child_moves_up];
             lower_node->children[child_moves_up] = upper_node->children[i];
             upper_node->children[i] = child_moved_up;
@@ -30,15 +30,15 @@ int nni_move(Tree* input_tree, long rank, int child_moves_up){
 
 
 // Make a rank move on tree between nodes of rank and rank + 1 (if possible)
-int rank_move(Tree* input_tree, long rank){
-    if (input_tree->tree[rank].parent == rank + 1){
+int rank_move(Tree* tree, long rank){
+    if (tree->tree[rank].parent == rank + 1){
         printf("Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank, rank + 1);
         return EXIT_FAILURE;
     }
     Node* upper_node;
-    upper_node = &input_tree->tree[rank + 1];
+    upper_node = &tree->tree[rank + 1];
     Node* lower_node;
-    lower_node = &input_tree->tree[rank];
+    lower_node = &tree->tree[rank];
 
     // update parents of nodes that swap ranks
     long upper_parent;
@@ -53,19 +53,19 @@ int rank_move(Tree* input_tree, long rank){
         upper_node->children[i] = lower_node->children[i];
         lower_node->children[i] = upper_child;
         // update parents of children of nodes that swap ranks
-        input_tree->tree[upper_node->children[i]].parent ++; 
-        input_tree->tree[lower_node->children[i]].parent --;
+        tree->tree[upper_node->children[i]].parent ++; 
+        tree->tree[lower_node->children[i]].parent --;
     }
     for (int i = 0; i < 2; i ++){
         // update children of parents of nodes that swap rank
         if (upper_node->parent == lower_node->parent){
             break;
         }
-        if (input_tree->tree[upper_node->parent].children[i] == rank){
-            input_tree->tree[upper_node->parent].children[i] ++;
+        if (tree->tree[upper_node->parent].children[i] == rank){
+            tree->tree[upper_node->parent].children[i] ++;
         }
-        if (input_tree->tree[lower_node->parent].children[i] == rank + 1){
-            input_tree->tree[lower_node->parent].children[i] --;
+        if (tree->tree[lower_node->parent].children[i] == rank + 1){
+            tree->tree[lower_node->parent].children[i] --;
         }
     }
     return EXIT_SUCCESS;
@@ -131,8 +131,8 @@ int move_up(Tree* tree, long lowest_moving_node, long k){
 
 
 // Compute Tree_List of all RNNI neighbours
-Tree_List rnni_neighbourhood(Tree*input_tree){
-    long num_leaves = input_tree->num_leaves;
+Tree_List rnni_neighbourhood(Tree* tree){
+    long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long max_nh_size = 2 * (num_leaves  - 1);
 
@@ -140,19 +140,19 @@ Tree_List rnni_neighbourhood(Tree*input_tree){
     long index = 0; //index to the currently last element in neighbour_array
 
     //Deep copy input tree to get neigh bouring trees
-    Tree* neighbour = new_tree_copy(input_tree);
+    Tree* neighbour = new_tree_copy(tree);
     Tree* next_neighbour_array;
     next_neighbour_array = &neighbour_array.trees[index];
 
     // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
     for (long r=num_leaves; r < num_nodes - 1; r++){
-        if (input_tree->tree[r].parent != r+1){
+        if (tree->tree[r].parent != r+1){
             // rank move:
             rank_move(neighbour, r);
             copy_tree(next_neighbour_array, neighbour);
             index++;
             next_neighbour_array = &neighbour_array.trees[index];
-            copy_tree(neighbour, input_tree);
+            copy_tree(neighbour, tree);
         } else{
             // 2 NNI moves
             for (long child_moves_up=0; child_moves_up<2; child_moves_up ++){
@@ -160,7 +160,7 @@ Tree_List rnni_neighbourhood(Tree*input_tree){
                 copy_tree(next_neighbour_array, neighbour);
                 index++;
                 next_neighbour_array = &neighbour_array.trees[index];
-                copy_tree(neighbour, input_tree);
+                copy_tree(neighbour, tree);
             }
         }
     }
@@ -171,12 +171,12 @@ Tree_List rnni_neighbourhood(Tree*input_tree){
 
 
 // Compute Tree_List of all rank neighbours
-Tree_List rank_neighbourhood(Tree*input_tree){
-    long num_leaves = input_tree->num_leaves;
+Tree_List rank_neighbourhood(Tree* tree){
+    long num_leaves = tree->num_leaves;
     long max_nh_size = num_leaves - 1;
 
     Tree_List neighbour_array = empty_tree_array(max_nh_size, num_leaves);
-    Tree* neighbour = new_tree_copy(input_tree);
+    Tree* neighbour = new_tree_copy(tree);
 
     //index to the currently last element in neighbour_array
     long index = 0;
@@ -184,12 +184,12 @@ Tree_List rank_neighbourhood(Tree*input_tree){
     next_neighbour_array_tree = &neighbour_array.trees[index];
     for (long r=num_leaves; r < 2 * num_leaves-2; r++){
         // Check if we can do rank move:
-        if (input_tree->tree[r].parent != r+1){
+        if (tree->tree[r].parent != r+1){
             rank_move(neighbour, r);
             copy_tree(next_neighbour_array_tree, neighbour);
             index++;
             // reset neighbour & update pointer to next neighbour in array
-            copy_tree(neighbour, input_tree);
+            copy_tree(neighbour, tree);
             next_neighbour_array_tree = &neighbour_array.trees[index];
         }
     }
@@ -199,9 +199,9 @@ Tree_List rank_neighbourhood(Tree*input_tree){
 }
 
 
-int uniform_neighbour(Tree* input_tree){
-    // Perform a random RNNI move (at uniform) on input_tree
-    long num_leaves = input_tree->num_leaves;
+int uniform_neighbour(Tree* tree){
+    // Perform a random RNNI move (at uniform) on tree
+    long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long num_moves = 0;
     long max_nh_size = 2 * (num_leaves - 1);
@@ -218,7 +218,7 @@ int uniform_neighbour(Tree* input_tree){
     }
     // Fill move list
     for (long i = num_leaves; i < num_nodes; i++){
-        if (input_tree->tree[i].parent == i+1){
+        if (tree->tree[i].parent == i+1){
             move_list[num_moves][0] = i;
             move_list[num_moves][1] = 1; // NNI move 0
             move_list[num_moves + 1][0] = i;
@@ -234,11 +234,11 @@ int uniform_neighbour(Tree* input_tree){
     // Pick random move
     long r = rand() % (num_moves-1);
     if (move_list[r][1] == 0){
-        rank_move(input_tree, move_list[r][0]);
+        rank_move(tree, move_list[r][0]);
     } else if (move_list[r][1] == 1){
-        nni_move(input_tree, move_list[r][0], 0);
+        nni_move(tree, move_list[r][0], 0);
     } else{
-        nni_move(input_tree, move_list[r][0], 1);
+        nni_move(tree, move_list[r][0], 1);
     }
     // free move_list
     for (long i = 0; i < max_nh_size; i++){ // max number of moves is reached if every internal edge has length one (caterpillar)
@@ -253,7 +253,7 @@ int uniform_neighbour(Tree* input_tree){
 // each row of path is move
 // path[i][1]: rank of lower node bounding the interval of move i
 // path[i][1]: 0,1,2: rank move, nni where children[0] stays, nni where children[1] stays
-Path findpath(Tree*start_tree, Tree*dest_tree){
+Path findpath(Tree* start_tree, Tree* dest_tree){
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2;
@@ -289,7 +289,7 @@ Path findpath(Tree*start_tree, Tree*dest_tree){
 
 
 // FINDPATH without saving the path -- returns only the distance
-long rnni_distance(Tree*start_tree, Tree*dest_tree){
+long rnni_distance(Tree* start_tree, Tree* dest_tree){
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long path_length = 0;
@@ -338,7 +338,7 @@ long rnni_distance(Tree*start_tree, Tree*dest_tree){
 
 
 // returns the FINDPATH path between two given given trees as Tree_List -- runs findpath and translates path matrix to actual trees on path
-Tree_List return_findpath(Tree*start_tree, Tree*dest_tree){
+Tree_List return_findpath(Tree* start_tree, Tree* dest_tree){
     long num_leaves = start_tree->num_leaves;
     Path fp = findpath(start_tree, dest_tree);
 
@@ -414,21 +414,21 @@ long sos(Tree_List* treelist, Tree* focal_tree){
 
 // TODO: Do I really need this function?
 // compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
-long shortest_rank_path(Tree* tree1, Tree* tree2){
-    long num_leaves = tree1->num_leaves;
-    // Deep copy tree1 to perform moves on that tree
+long shortest_rank_path(Tree* start_tree, Tree* dest_tree){
+    long num_leaves = start_tree->num_leaves;
+    // Deep copy start_tree to perform moves on that tree
      Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
     current_tree->num_leaves = num_leaves;
     current_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
     for (long i = 0; i < 2 * num_leaves - 1; i++){
-        current_tree->tree[i] = tree1->tree[i];
+        current_tree->tree[i] = start_tree->tree[i];
     }
 
     long path_length = 0;
     for(int i = num_leaves; i < 2 * num_leaves - 1; i++){
-        if (!((current_tree->tree[i].children[0] == tree2->tree[i].children[0] && current_tree->tree[i].children[1] == tree2->tree[i].children[1])||
-        (current_tree->tree[i].children[0] == tree2->tree[i].children[1] && current_tree->tree[i].children[1] == tree2->tree[i].children[0]))){
-            long current_mrca = mrca(current_tree, tree2->tree[i].children[0], tree2->tree[i].children[1]);
+        if (!((current_tree->tree[i].children[0] == dest_tree->tree[i].children[0] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[1])||
+        (current_tree->tree[i].children[0] == dest_tree->tree[i].children[1] && current_tree->tree[i].children[1] == dest_tree->tree[i].children[0]))){
+            long current_mrca = mrca(current_tree, dest_tree->tree[i].children[0], dest_tree->tree[i].children[1]);
             while(current_mrca != i){
                 rank_move(current_tree, current_mrca-1);
                 current_mrca--;
