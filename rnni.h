@@ -3,6 +3,12 @@
 
 # include "tree.h"
 
+
+typedef struct Path{
+  long ** moves;
+  long length;
+} Path;
+
 int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up);
 int rank_move(Tree * input_tree, long rank_in_list);
 int move_up(Tree * itree, long i, long k);

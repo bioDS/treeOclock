@@ -33,11 +33,6 @@ typedef struct Tree_List{
   long max_root_time;
 } Tree_List;
 
-typedef struct Path{
-  long ** moves;
-  long length;
-} Path;
-
 
 Node empty_node();
 Tree* empty_tree(long num_leaves);
