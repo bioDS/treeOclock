@@ -191,18 +191,23 @@ Tree_List rank_neighbourhood(Tree*input_tree){
 
 int uniform_neighbour(Tree* input_tree){
     // Perform a random RNNI move (at uniform) on input_tree
-    // Deep copy input tree, so we can perform move on it
     long num_leaves = input_tree->num_leaves;
-    // Count number of possible moves (rank interval + 2*NNI interval)
-    long num_moves = 0; // total number of possible moves on given tree (2* #edge intervals + 1 * #rank intervals) 
-    int ** move_list = malloc(2 * (num_leaves - 1) * sizeof(int*));
-    for (long i = 0; i < 2*(num_leaves - 1); i++){ // max number of moves is reached if every internal edge has length one (caterpillar)
-        move_list[i] = malloc(2*sizeof(int));
+    long num_nodes = 2 * num_leaves - 1;
+    long num_moves = 0;
+    long max_nh_size = 2 * (num_leaves - 1);
+
+    // moves are saved in matrix -- ith move in move_list[i]
+    // move_list[i][0] -- rank of lower node of edge for move
+    // move_list[i][1] -- 0 for rank move
+    // 1 for NNI move with children[0] moves up
+    // 2 for NNI move with children[1] moves up
+    int ** move_list = calloc(max_nh_size, sizeof(int*));
+    for (long i = 0; i < max_nh_size; i++){
         move_list[i][0] = -1; // lower node of edge for move
         move_list[i][1] = -1; // rank vs nni move
     }
     // Fill move list
-    for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
+    for (long i = num_leaves; i < num_nodes; i++){
         if (input_tree->tree[i].parent == i+1){
             move_list[num_moves][0] = i;
             move_list[num_moves][1] = 1; // NNI move 0
@@ -216,7 +221,7 @@ int uniform_neighbour(Tree* input_tree){
         }
     }
 
-    // Pick random moves
+    // Pick random move
     long r = rand() % (num_moves-1);
     if (move_list[r][1] == 0){
         rank_move(input_tree, move_list[r][0]);
@@ -226,7 +231,7 @@ int uniform_neighbour(Tree* input_tree){
         nni_move(input_tree, move_list[r][0], 1);
     }
     // free move_list
-    for (long i = 0; i < 2*(num_leaves - 1); i++){ // max number of moves is reached if every internal edge has length one (caterpillar)
+    for (long i = 0; i < max_nh_size; i++){ // max number of moves is reached if every internal edge has length one (caterpillar)
         free(move_list[i]);
     }
     free(move_list);
