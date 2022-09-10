@@ -43,6 +43,7 @@ Node empty_node();
 Tree* empty_tree(long num_leaves);
 void copy_tree(Tree* tree, Tree* to_copy_tree);
 Tree* new_tree_copy(Tree* tree);
+Tree_List empty_tree_array(long num_trees, long num_leaves);
 void print_tree(Tree* tree);
 
 int same_topology(Tree* tree1, Tree* tree2);

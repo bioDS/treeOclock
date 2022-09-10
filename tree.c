@@ -26,7 +26,7 @@ Tree* empty_tree(long num_leaves){
 }
 
 
-void copy_tree (Tree* tree, Tree* to_copy_tree){
+void copy_tree(Tree* tree, Tree* to_copy_tree){
     // copy to_copy tree into tree
     long num_nodes = 2 * tree->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++){
@@ -41,6 +41,18 @@ Tree* new_tree_copy(Tree* tree){
     Tree* tree_copy = empty_tree(num_leaves);
     copy_tree(tree_copy, tree);
     return tree_copy;
+}
+
+
+Tree_List empty_tree_array(long num_trees, long num_leaves){
+    Tree_List tree_array;
+    tree_array.num_trees = num_trees;
+    tree_array.trees = calloc(num_trees, sizeof(Tree));
+    for (long i = 0; i < num_trees; i++){
+        tree_array.trees[i].num_leaves = num_leaves;
+        tree_array.trees[i].tree = calloc(2 * num_leaves - 1, sizeof(Node));
+    }
+    return tree_array;
 }
 
 
@@ -80,7 +92,7 @@ int same_tree(Tree* tree1, Tree* tree2){
 
 
 // find rank of mrca of nodes with positions node1 and node2 in tree
-long mrca(Tree * input_tree, long node1, long node2){
+long mrca(Tree* input_tree, long node1, long node2){
     long rank1 = node1;
     long rank2 = node2;
     while (rank1 != rank2){
