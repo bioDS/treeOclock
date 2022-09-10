@@ -34,6 +34,10 @@ unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
 unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
 unlabelled_rnni_neighbourhood.restype = TREE_LIST
 
+rank_neighbourhood = lib.rank_neighbourhood
+rank_neighbourhood.argtypes = [POINTER(TREE)]
+rank_neighbourhood.restype = TREE_LIST
+
 nni_move = lib.nni_move
 nni_move.argtypes = [POINTER(TREE), c_long, c_int]
 nni_move.restype = c_int
@@ -41,6 +45,10 @@ nni_move.restype = c_int
 rank_move = lib.rank_move
 rank_move.argtypes = [POINTER(TREE), c_long]
 rank_move.restype = c_int
+
+print_tree = lib.print_tree
+print_tree.argtypes = [POINTER(TREE)]
+print_tree.restype = c_int
 
 spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
@@ -118,9 +126,9 @@ rnni_neighbourhood = lib.rnni_neighbourhood
 rnni_neighbourhood.argtypes = [POINTER(TREE)]
 rnni_neighbourhood.restype = TREE_LIST
 
-findpath_distance = lib.findpath_distance
-findpath_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
-findpath_distance.restype = c_long
+rnni_distance = lib.rnni_distance
+rnni_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
+rnni_distance.restype = c_long
 
 findpath_path = lib.return_findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
@@ -130,9 +138,9 @@ random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
 random_walk.restype = c_long
 
-mrca_list = lib.mrca_list
-mrca_list.argtypes = [POINTER(TREE), POINTER(TREE)]
-mrca_list.restype = POINTER(c_long)
+mrca_array = lib.mrca_array
+mrca_array.argtypes = [POINTER(TREE), POINTER(TREE)]
+mrca_array.restype = POINTER(c_long)
 
 fp_rspr = lib.fp_rspr
 fp_rspr.argtypes = [POINTER(TREE), POINTER(TREE)]
