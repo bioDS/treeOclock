@@ -6,10 +6,6 @@
 
 // NNI move on edge bounded by rank and rank + 1, moving child_moves_up (index) of the lower node up
 int nni_move(Tree * input_tree, long rank, int child_moves_up){
-    if (input_tree->tree == NULL){
-        printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
-        return EXIT_FAILURE;
-    }
     Node* upper_node;
     upper_node = &input_tree->tree[rank + 1];
     Node* lower_node;
@@ -35,10 +31,6 @@ int nni_move(Tree * input_tree, long rank, int child_moves_up){
 
 // Make a rank move on tree between nodes of rank and rank + 1 (if possible)
 int rank_move(Tree * input_tree, long rank){
-    if (input_tree->tree == NULL){
-        printf("Error. No rank move possible. Given tree doesn't exist.\n");
-        return EXIT_FAILURE;
-    }
     if (input_tree->tree[rank].parent == rank + 1){
         printf("Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank, rank + 1);
         return EXIT_FAILURE;
@@ -106,28 +98,24 @@ int decrease_mrca(Tree* tree, long node1, long node2){
 // Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
 int move_up(Tree * itree, long i, long k){
     long num_moves = 0; // counter for the number of moves that are necessary
-    if (itree->tree == NULL){
-        printf("Error. No moves possible. Given tree doesn't exist.\n");
-    } else{
-        long j = i;
-        // Find the highest j that needs to be moved up -- maximum is reached at root!
-        while (itree->tree[j+1].time <= k && j+1 <=2*itree->num_leaves-2){
-            j ++;
-        }
-        long num_moving_nodes = j - i; // number of nodes that will need to be moved
-        // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
-        // Find the uppermost node that needs to move up
-        while (itree->tree[j+1].time <= k+num_moving_nodes && j+1 <=2*itree->num_leaves-2){
-            j++;
-            num_moving_nodes++;
-        }
-        // Now j is the index of the uppermost node whose time needs to be increased.
-        // If j is above k, then we need to move it to time[j]+k
-        // In general, the nodes that have index between i and j need to end up having time k+index-i
-        for (long index = i; index <= j; index++){ // Do all required length moves
-            num_moves += k+index-i - itree->tree[index].time;
-            itree->tree[index].time = k+index-i;
-        }
+    long j = i;
+    // Find the highest j that needs to be moved up -- maximum is reached at root!
+    while (itree->tree[j+1].time <= k && j+1 <=2*itree->num_leaves-2){
+        j ++;
+    }
+    long num_moving_nodes = j - i; // number of nodes that will need to be moved
+    // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
+    // Find the uppermost node that needs to move up
+    while (itree->tree[j+1].time <= k+num_moving_nodes && j+1 <=2*itree->num_leaves-2){
+        j++;
+        num_moving_nodes++;
+    }
+    // Now j is the index of the uppermost node whose time needs to be increased.
+    // If j is above k, then we need to move it to time[j]+k
+    // In general, the nodes that have index between i and j need to end up having time k+index-i
+    for (long index = i; index <= j; index++){ // Do all required length moves
+        num_moves += k+index-i - itree->tree[index].time;
+        itree->tree[index].time = k+index-i;
     }
     return num_moves;
 }
