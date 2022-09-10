@@ -16,12 +16,11 @@ Node empty_node(){
 
 Tree* empty_tree(long num_leaves){
     // initalise tree on num_leaves leaves
-    Tree* new_tree = malloc(sizeof(Node*) + 4 * sizeof(long));
+    Tree* new_tree = malloc(sizeof(Tree));
     new_tree->tree = calloc((2 * num_leaves - 1), sizeof(Node));
     new_tree->num_leaves = num_leaves;
     for (long i = 0; i < 2 * num_leaves - 1; i++){
-        Node new_node = empty_node();
-        new_tree->tree[i] = new_node;
+        new_tree->tree[i] = empty_node();
     }
     return new_tree;
 }
@@ -38,14 +37,13 @@ Tree* deep_copy(Tree* tree){
 }
 
 
-int print_tree(Tree* tree){
+void print_tree(Tree* tree){
     // print parents and children for each node in tree
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     for (long rank = 0; rank < num_nodes; rank++){
         printf("Node at rank %ld: parent %ld, children %ld, %ld\n", rank, tree->tree[rank].parent, tree->tree[rank].children[0], tree->tree[rank].children[1]);
     }
-    return 0;
 }
 
 
@@ -76,7 +74,7 @@ int same_tree(Tree* tree1, Tree* tree2){
 int nni_move(Tree * input_tree, long rank, int child_moves_up){
     if (input_tree->tree == NULL){
         printf("Error. No RNNI move possible. Given tree doesn't exist.\n");
-        return 1;
+        return EXIT_FAILURE;
     }
     Node* upper_node;
     upper_node = &input_tree->tree[rank + 1];
@@ -84,7 +82,7 @@ int nni_move(Tree * input_tree, long rank, int child_moves_up){
     lower_node = &input_tree->tree[rank];
     if(lower_node->parent != rank + 1){
         printf("Can't do an NNI - interval [%ld, %ld] is not an edge!\n", rank, rank + 1);
-        return 1;
+        return EXIT_FAILURE;
     }
     int child_moved_up;
     for (int i = 0; i < 2; i++){
@@ -97,7 +95,7 @@ int nni_move(Tree * input_tree, long rank, int child_moves_up){
             upper_node->children[i] = child_moved_up;
         }
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -105,11 +103,11 @@ int nni_move(Tree * input_tree, long rank, int child_moves_up){
 int rank_move(Tree * input_tree, long rank){
     if (input_tree->tree == NULL){
         printf("Error. No rank move possible. Given tree doesn't exist.\n");
-        return 1;
+        return EXIT_FAILURE;
     }
     if (input_tree->tree[rank].parent == rank + 1){
         printf("Error. No rank move possible. The interval [%ld,%ld] is an edge!\n", rank, rank + 1);
-        return 1;
+        return EXIT_FAILURE;
     }
     Node* upper_node;
     upper_node = &input_tree->tree[rank + 1];
@@ -144,7 +142,7 @@ int rank_move(Tree * input_tree, long rank){
             input_tree->tree[lower_node->parent].children[i] --;
         }
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -261,12 +259,6 @@ int uniform_neighbour(Tree * input_tree){
     // Perform a random RNNI move (at uniform) on input_tree
     // Deep copy input tree, so we can perform move on it
     long num_leaves = input_tree->num_leaves;
-    // Tree * output_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
-    // output_tree->num_leaves = num_leaves;
-    // output_tree->tree = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
-    // for (long i = 0; i < 2 * num_leaves - 1; i++){
-    //     output_tree->tree[i] = input_tree->tree[i];
-    // }
     // Count number of possible moves (rank interval + 2*NNI interval)
     long num_moves = 0; // total number of possible moves on given tree (2* #edge intervals + 1 * #rank intervals) 
     int ** move_list = malloc(2 * (num_leaves - 1) * sizeof(int*));
@@ -277,28 +269,21 @@ int uniform_neighbour(Tree * input_tree){
     }
     // Fill move list
     for (long i = num_leaves; i < 2 * num_leaves - 1; i++){
-        // printf("rank: %ld, children[0]: %ld, children[1]: %ld, parent: %ld\n", i, input_tree->tree[i].children[0], input_tree->tree[i].children[1], input_tree->tree[i].parent);
         if (input_tree->tree[i].parent == i+1){
-            // printf("move_list index: %ld, num_moves: %ld, type of move: %d\n", i, num_moves, 1);
             move_list[num_moves][0] = i;
             move_list[num_moves][1] = 1; // NNI move 0
             move_list[num_moves + 1][0] = i;
             move_list[num_moves + 1][1] = 2; // NNI move 1
-            // printf("move_list index: %ld, num_moves: %ld, type of move: %d\n", i, num_moves+1, 2);
             num_moves += 2;
         } else{
-            // printf("move_list index: %ld, num_moves: %ld, type of move: %d\n", i, num_moves, 0);
             move_list[num_moves][0] = i;
             move_list[num_moves][1] = 0; // rank move is 0
             num_moves += 1;
         }
-        // printf("num_moves: %ld\n", num_moves);
     }
 
-    // Pick random move
-    // srand(time());
+    // Pick random moves
     long r = rand() % (num_moves-1);
-    // printf("r: %ld\n", r);
     if (move_list[r][1] == 0){
         rank_move(input_tree, move_list[r][0]);
     } else if (move_list[r][1] == 1){
@@ -311,7 +296,7 @@ int uniform_neighbour(Tree * input_tree){
         free(move_list[i]);
     }
     free(move_list);
-    return(0);
+    return EXIT_SUCCESS;
 }
 
 
@@ -344,14 +329,11 @@ long* mrca_list(Tree* tree1, Tree* tree2){
     for (long i = num_leaves; i < 2*num_leaves - 1; i++){
         // iterate through the ranks of mrcas in dest_tree
         // find mrca (distinguish leaves vs. non-leaf and fill mrca_list to get mrcas of non-leafs)
-        // printf("i: %ld, sum: %ld\n", i, sum);
         long child0;
         if (tree2->tree[i].children[0] < num_leaves){
-            // printf("Child0 is leaf\n");
             child0 = tree2->tree[i].children[0];
         } else{
             child0 = mrca_list[tree2->tree[i].children[0]];
-            // printf("Child0 is internal node\n");
         }
 
         long child1;
@@ -360,13 +342,11 @@ long* mrca_list(Tree* tree1, Tree* tree2){
         } else{
             child1 = mrca_list[tree2->tree[i].children[1]];
         }
-        // printf("child0: %ld, child1: %ld\n", child0, child1);
 
         long current_mrca = mrca(tree1, child0, child1);
         mrca_list[i] = current_mrca;
-        // printf("child0: %ld, child1: %ld, current_mrca: %ld\n", child0, child1, current_mrca);
     }
-    return(mrca_list);
+    return mrca_list;
 }
 
 
@@ -380,14 +360,13 @@ long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_pare
     if (include_leaf_parents == 0){
         for (long i = 0; i < num_leaves; i++){
             sum += abs(current_tree->tree[i].parent - dest_tree->tree[i].parent);
-            // printf("i: %ld, sum: %ld\n", i, sum);
         }
     }
     long* mrcas = mrca_list(current_tree, dest_tree);
     for (long i = num_leaves; i < 2*num_leaves-1; i++){
         sum += (mrcas[i] - i);
     }
-    return(sum);
+    return sum;
 }
 
 
@@ -420,7 +399,7 @@ int decrease_mrca(Tree* tree, long node1, long node2){
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         tree->tree[i] = neighbour->tree[i];
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -442,7 +421,6 @@ long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2){
         long j = i;
         while (tree1->tree[j].parent != -1){
             j = tree1->tree[j].parent;
-            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
             clusters_t1[j - num_leaves][i] = 1;
         }
         clusters_t1[num_leaves - 2][i] = 1;
@@ -460,7 +438,6 @@ long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2){
         long j = i;
         while (tree2->tree[j].parent != -1){
             j = tree2->tree[j].parent;
-            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
             clusters_t2[j - num_leaves][i] = 1;
         }
         clusters_t2[num_leaves - 2][i] = 1;
@@ -477,7 +454,7 @@ long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2){
     }
     free(clusters_t1);
     free(clusters_t2);
-    return(symm_diff);
+    return symm_diff;
 }
 
 
@@ -500,7 +477,6 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
         long j = i;
         while (tree1->tree[j].parent != -1){
             j = tree1->tree[j].parent;
-            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
             clusters_t1[j - num_leaves][i] = 1;
         }
         clusters_t1[num_leaves - 2][i] = 1;
@@ -518,7 +494,6 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
         long j = i;
         while (tree2->tree[j].parent != -1){
             j = tree2->tree[j].parent;
-            // printf("j= %ld, numleaves = %ld, i = %ld\n", j, num_leaves, i);
             clusters_t2[j - num_leaves][i] = 1;
         }
         clusters_t2[num_leaves - 2][i] = 1;
@@ -526,11 +501,7 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
 
     // now count the number of entries that are a 1 in either cluster_t1 or cluster_t2 in row k-num_leaves
     long output = 0;
-    // printf("clusters for trees:\n, %s, %s\n", tree_to_string(tree1), tree_to_string(tree2));
     for (long i = 0; i < num_leaves; i++){
-        // printf("i: %ld, k:%ld\n", i, k);
-        // printf("clusters_t1[k-num_leaves][i]: %ld\n",clusters_t1[k-num_leaves][i]);
-        // printf("clusters_t2[k-num_leaves][i]: %ld\n",clusters_t2[k-num_leaves][i]);
         if (clusters_t1[k-num_leaves][i]+clusters_t2[k-num_leaves][i]==1){
             output++;
         }
@@ -541,25 +512,21 @@ long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
     }
     free(clusters_t1);
     free(clusters_t2);
-    return(output);
+    return output;
 }
 
 
 // Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
 int move_up(Tree * itree, long i, long k){
-    // printf("move up tree: %s", tree_to_string(itree));
     long num_moves = 0; // counter for the number of moves that are necessary
-    // printf("root time before move_up: %ld\n", itree->tree[2*itree->num_leaves - 2].time);
     if (itree->tree == NULL){
         printf("Error. No moves possible. Given tree doesn't exist.\n");
     } else{
         long j = i;
-        // printf("k: %ld\n", k);
         // Find the highest j that needs to be moved up -- maximum is reached at root!
         while (itree->tree[j+1].time <= k && j+1 <=2*itree->num_leaves-2){
             j ++;
         }
-        // printf("j after first loop: %ld\n", j);
         long num_moving_nodes = j - i; // number of nodes that will need to be moved
         // it might happen that we need to move nodes with times above k up, if there is not enough space for the other nodes that are supposed to move up.
         // Find the uppermost node that needs to move up
@@ -567,26 +534,14 @@ int move_up(Tree * itree, long i, long k){
             j++;
             num_moving_nodes++;
         }
-        // printf("Index range in move_up: %ld, %ld\n", i, j);
-        // printf("Time range in move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
         // Now j is the index of the uppermost node whose time needs to be increased.
         // If j is above k, then we need to move it to time[j]+k
         // In general, the nodes that have index between i and j need to end up having time k+index-i
-        // !!!!! SOMETHING IS WRONG WITH THE ROOT TIME HERE, I THINK!!!!
         for (long index = i; index <= j; index++){ // Do all required length moves
-            // printf("index: %ld\n", index);
             num_moves += k+index-i - itree->tree[index].time;
             itree->tree[index].time = k+index-i;
         }
-        // // last iteration of loop/case where i=j/root
-        // if (i==j){
-        //     num_moves += k+j-i - itree->tree[j].time;
-        //     itree->tree[j].time = k+j-i;
-        // }
-        // printf("Times after move_up: %ld, %ld\n", itree->tree[i].time, itree->tree[j].time);
     }
-    // printf("current tree in move_up: %s\n", tree_to_string(itree));
-    // printf("root time after move_up: %ld\n", itree->tree[2*itree->num_leaves - 2].time);
     return num_moves;
 }
 

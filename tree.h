@@ -8,6 +8,12 @@
 #include <time.h>
 #include "queue.h"
 
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+
+#define TRUE 1
+#define FALSE 0
+
 typedef struct Node {
   long parent;
   long children[2];
