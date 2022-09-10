@@ -290,7 +290,6 @@ int uniform_neighbour(Tree * input_tree){
 // FINDPATH. returns a path in matrix representation -- explanation in data_structures.md
 // This function only works for ranked trees
 Path findpath(Tree *start_tree, Tree *dest_tree){
-    float count = 0.05; // counter to print the progress of the algorithm (in 10% steps of max distance)
     long num_leaves = start_tree->num_leaves;
     long max_dist = ((num_leaves - 1) * (num_leaves - 2))/2 + 1;
     Path path;
@@ -358,11 +357,6 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
                 }
                 path.moves[path_index][0] = current_mrca;
                 path_index++;
-                // Print progress (in 5% steps from max distance)
-                if (count < (float) path_index / (float) max_dist){
-                     printf("%d Percent of maximum distance reached\n", (int) (100 * count));
-                     count += 0.05;
-                }
             }
         }
         free(current_tree.tree);
@@ -373,7 +367,7 @@ Path findpath(Tree *start_tree, Tree *dest_tree){
 
 
 // FINDPATH without saving the path -- returns only the distance
-long findpath_distance(Tree *start_tree, Tree *dest_tree){
+long rnni_distance(Tree *start_tree, Tree *dest_tree){
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long path_length = 0;
@@ -483,7 +477,7 @@ long random_walk(Tree * tree, long k){
     for (long i = 0; i < k; i++){
         uniform_neighbour(current_tree);
     }
-    long distance = findpath_distance(current_tree, tree);
+    long distance = rnni_distance(current_tree, tree);
     free(current_tree);
     return(distance);
 }
@@ -506,7 +500,7 @@ long sos(Tree_List* treelist, Tree* focal_tree){
     // compute sum of squared distances for all tree in treelist to focal_tree
     long sos = 0;
     for(long i = 0; i < treelist->num_trees; i++){
-        sos += findpath_distance(&treelist->trees[i], focal_tree);
+        sos += rnni_distance(&treelist->trees[i], focal_tree);
     }
     return sos;
 }
