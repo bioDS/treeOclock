@@ -51,10 +51,10 @@ int same_topology(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
     for(long i=num_leaves; i < 2 * num_leaves - 1; i++){
         if (tree1->tree[i].parent != tree2->tree[i].parent){
-            return(1);
+            return FALSE;
         }
     }
-    return(0);
+    return TRUE;
 }
 
 
@@ -62,10 +62,10 @@ int same_topology(Tree* tree1, Tree* tree2){
 int same_tree(Tree* tree1, Tree* tree2){
     for (long i = 0; i < 2* tree1->num_leaves - 1; i++){
         if (tree1->tree[i].parent != tree2->tree[i].parent){
-            return(1);
+            return FALSE;
         }
     }
-    return(0);
+    return TRUE;
 }
 
 // find mrca of nodes with positions node1 and node2 in tree
