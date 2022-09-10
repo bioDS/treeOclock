@@ -26,14 +26,20 @@ Tree* empty_tree(long num_leaves){
 }
 
 
-Tree* deep_copy(Tree* tree){
+void copy_tree (Tree* tree, Tree* to_copy_tree){
+    // copy to_copy tree into tree
+    long num_nodes = 2 * tree->num_leaves - 1;
+    for (long i = 0; i < num_nodes; i++){
+        tree->tree[i] = to_copy_tree->tree[i];
+    }
+}
+
+
+Tree* new_tree_copy(Tree* tree){
     // deep copy tree
     long num_leaves = tree->num_leaves;
-    long num_nodes = 2 * num_leaves - 1;
     Tree* tree_copy = empty_tree(num_leaves);
-    for (long i = 0; i < num_nodes; i++){
-        tree_copy->tree[i] = tree->tree[i];
-    }
+    copy_tree(tree_copy, tree);
     return tree_copy;
 }
 
@@ -137,7 +143,7 @@ long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents){
             sum += abs(tree1->tree[i].parent - tree2->tree[i].parent);
         }
     }
-    long* mrcas = mrca_list(tree1, tree2);
+    long* mrcas = mrca_array(tree1, tree2);
     for (long i = num_leaves; i < num_nodes; i++){
         sum += mrcas[i] - i;
     }

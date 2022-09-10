@@ -386,13 +386,13 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
             break;
         }
 
-        long * current_mrcas = mrca_list(current_tree, dest_tree); // get mrca list for current tree to be able to compare mrcas to neighbours
+        long * current_mrcas = mrca_array(current_tree, dest_tree); // get mrca list for current tree to be able to compare mrcas to neighbours
 
         for (long i = 0; i < neighbours.num_trees; i++){
             change = 0;
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
-            long *neighbour_mrcas = mrca_list(neighbour_pointer, dest_tree);
+            long *neighbour_mrcas = mrca_array(neighbour_pointer, dest_tree);
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
                 if (j >= num_leaves){
@@ -900,15 +900,15 @@ long fp_rspr(Tree* tree1, Tree* tree2){
             // decrease the mrca of mrca in current_tree
             decrease_mrca(neighbour, tree2->tree[i].children[0], tree2->tree[i].children[1]);
             // check if no mrca has been moved in wrong direction:
-            long* n_mrca_list = mrca_list(neighbour, tree2);
-            long* c_mrca_list = mrca_list(current_tree, tree2);
+            long* n_mrca_array = mrca_array(neighbour, tree2);
+            long* c_mrca_array = mrca_array(current_tree, tree2);
             int take_neighbour = 0; // only take neighbour if this variable stays 0
             for(long i = 0; i < num_leaves; i++){
                 if (abs(neighbour->tree[i].parent - tree2->tree[i].parent) > abs(current_tree->tree[i].parent - tree2->tree[i].parent)){ // the parent of an existing subtree has been moved in the wrong direction
                     take_neighbour = 1;
                     printf("case1\n");
                 }
-                if (i < num_leaves-1 && abs(i+num_leaves-n_mrca_list[i+num_leaves]) > abs(i+num_leaves-c_mrca_list[i+num_leaves])){ // an mrca has been moved in the wrong direction
+                if (i < num_leaves-1 && abs(i+num_leaves-n_mrca_array[i+num_leaves]) > abs(i+num_leaves-c_mrca_array[i+num_leaves])){ // an mrca has been moved in the wrong direction
                     take_neighbour = 1;
                 }
             }
