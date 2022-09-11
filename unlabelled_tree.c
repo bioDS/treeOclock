@@ -1,5 +1,4 @@
 // Basic functions for unlabelled ranked trees
-// Author: Lena Collienne
 
 #include "unlabelled_tree.h"
 
