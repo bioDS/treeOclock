@@ -254,10 +254,12 @@ def tree_to_cluster_string(tree):
     num_leaves = tree.num_leaves
     num_nodes = 2 * num_leaves - 1
     cluster_list = list() # pos i in list: string containing all leaves descending from node at rank i, separated by ","
+    times = list() # save time of node with rank i at position i
     for i in range(0,num_leaves-1):
         cluster_list.append("")
     # fill cluster list
     for i in range(num_leaves, num_nodes):
+        times.append(tree.node_array[i].time)
         for child_index in [0,1]:
             if tree.node_array[i].children[child_index] < num_leaves:
                 cluster_list[i - num_leaves] += str(tree.node_array[i].children[child_index]+1)
@@ -275,6 +277,7 @@ def tree_to_cluster_string(tree):
             if len(leaf) > 0:
                 tree_str += leaf + ","
         tree_str = tree_str[:len(tree_str)-1]
-        tree_str += "}"
+        tree_str += "}:" + str(times[i]) +","
+    tree_str = tree_str[:-1] #del last ","
     tree_str += "]"
     return tree_str
