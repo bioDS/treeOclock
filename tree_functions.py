@@ -34,6 +34,12 @@ unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
 unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
 unlabelled_rnni_neighbourhood.restype = TREE_ARRAY
 
+free_tree = lib.free_tree
+free_tree.argtypes = [POINTER(TREE)]
+
+free_tree_array = lib.free_tree_array
+free_tree_array.argtypes = [TREE_ARRAY]
+
 rank_neighbourhood = lib.rank_neighbourhood
 rank_neighbourhood.argtypes = [POINTER(TREE)]
 rank_neighbourhood.restype = TREE_ARRAY
