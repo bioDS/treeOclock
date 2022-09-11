@@ -12,13 +12,4 @@ Tree_List spr_neighbourhood(Tree* input_tree);
 Tree_List hspr_neighbourhood(Tree* input_tree);
 Tree_List unlabelled_spr_neighbourhood(Tree* input_tree, int horizontal);
 
-Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, int hspr);
-Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr);
-Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int rank);
-long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree, int hspr);
-long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree);
-Tree_List rankedspr_path_bottom_up_hspr(Tree *start_tree, Tree *dest_tree);
-long rankedspr_path_bottom_up_hspr_dist(Tree *start_tree, Tree *dest_tree);
-long fp_rspr(Tree* tree1, Tree* tree2);
-
 #endif
