@@ -68,14 +68,14 @@ int unlabelled_spr_move(Tree * input_tree, long r, long new_parent, int child_mo
 
 
 
-// Compute Tree_List of all spr_neighbours
+// Compute Tree_Array of all spr_neighbours
 // If horizontal = FALSE, returns RSPR neighbourhood (including rank moves), otherwise HSPR neighbouhood (without rank moves)
-Tree_List all_spr_neighbourhood(Tree* tree, int horizontal){
+Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal){
     long num_leaves = tree->num_leaves;
     long max_nh_size = 2 * num_leaves * (num_leaves - 1);
 
     // Initialise list of neighbours
-    Tree_List neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
     long index = 0; //index to the currently last element in neighbour_array
 
     //Deep copy input tree to get neighbouring trees
@@ -112,10 +112,12 @@ Tree_List all_spr_neighbourhood(Tree* tree, int horizontal){
     return(neighbour_array);
 }
 
-Tree_List spr_neighbourhood(Tree* input_tree){
+
+Tree_Array spr_neighbourhood(Tree* input_tree){
     return all_spr_neighbourhood(input_tree, FALSE);
 }
 
-Tree_List hspr_neighbourhood(Tree* input_tree){
+
+Tree_Array hspr_neighbourhood(Tree* input_tree){
     return all_spr_neighbourhood(input_tree, TRUE);
 }

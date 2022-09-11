@@ -22,7 +22,7 @@ class TREE(Structure):
         self.sos_d = sos_d
 
 
-class TREE_LIST(Structure):
+class TREE_ARRAY(Structure):
     _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long), ('max_root_time', c_long)]
     def __init_(self, trees, num_trees, max_root_time):
         self.trees = trees
@@ -32,11 +32,11 @@ class TREE_LIST(Structure):
 
 unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
 unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
-unlabelled_rnni_neighbourhood.restype = TREE_LIST
+unlabelled_rnni_neighbourhood.restype = TREE_ARRAY
 
 rank_neighbourhood = lib.rank_neighbourhood
 rank_neighbourhood.argtypes = [POINTER(TREE)]
-rank_neighbourhood.restype = TREE_LIST
+rank_neighbourhood.restype = TREE_ARRAY
 
 nni_move = lib.nni_move
 nni_move.argtypes = [POINTER(TREE), c_long, c_int]
@@ -68,11 +68,11 @@ mrca_differences.restype = c_long
 
 rankedspr_path_mrca_diff = lib.rankedspr_path_mrca_diff
 rankedspr_path_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
-rankedspr_path_mrca_diff.restype = TREE_LIST
+rankedspr_path_mrca_diff.restype = TREE_ARRAY
 
 rankedspr_path_mrca_cluster_diff = lib.rankedspr_path_mrca_cluster_diff
 rankedspr_path_mrca_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
-rankedspr_path_mrca_cluster_diff.restype = TREE_LIST
+rankedspr_path_mrca_cluster_diff.restype = TREE_ARRAY
 
 rankedspr_path_restricting_neighbourhood = lib.rankedspr_path_restricting_neighbourhood
 rankedspr_path_restricting_neighbourhood.argtypes = [POINTER(TREE), POINTER(TREE), c_int]
@@ -84,15 +84,15 @@ sum_symmetric_cluster_diff.restype = c_long
 
 spr_neighbourhood = lib.spr_neighbourhood
 spr_neighbourhood.argtypes = [POINTER(TREE)]
-spr_neighbourhood.restype = TREE_LIST
+spr_neighbourhood.restype = TREE_ARRAY
 
 all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
-all_spr_neighbourhood.restype = TREE_LIST
+all_spr_neighbourhood.restype = TREE_ARRAY
 
 unlabelled_spr_neighbourhood = lib.unlabelled_spr_neighbourhood
 unlabelled_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
-unlabelled_spr_neighbourhood.restype = TREE_LIST
+unlabelled_spr_neighbourhood.restype = TREE_ARRAY
 
 shortest_rank_path = lib.shortest_rank_path
 shortest_rank_path.argtypes = [POINTER(TREE), POINTER(TREE)]
@@ -100,11 +100,11 @@ shortest_rank_path.restype = c_long
 
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]
-hspr_neighbourhood.restype = TREE_LIST
+hspr_neighbourhood.restype = TREE_ARRAY
 
 rankedspr_path_bottom_up_hspr = lib.rankedspr_path_bottom_up_hspr
 rankedspr_path_bottom_up_hspr.argtypes = [POINTER(TREE), POINTER(TREE)]
-rankedspr_path_bottom_up_hspr.restype = TREE_LIST
+rankedspr_path_bottom_up_hspr.restype = TREE_ARRAY
 
 rankedspr_path_bottom_up_hspr_dist = lib.rankedspr_path_bottom_up_hspr_dist
 rankedspr_path_bottom_up_hspr_dist.argtypes = [POINTER(TREE), POINTER(TREE)]
@@ -120,11 +120,11 @@ rankedspr_path_top_down_symm_diff.restype = c_long
 
 rankedspr_path_rnni_mrca_diff = lib.rankedspr_path_rnni_mrca_diff
 rankedspr_path_rnni_mrca_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
-rankedspr_path_rnni_mrca_diff.restype = TREE_LIST
+rankedspr_path_rnni_mrca_diff.restype = TREE_ARRAY
 
 rnni_neighbourhood = lib.rnni_neighbourhood
 rnni_neighbourhood.argtypes = [POINTER(TREE)]
-rnni_neighbourhood.restype = TREE_LIST
+rnni_neighbourhood.restype = TREE_ARRAY
 
 rnni_distance = lib.rnni_distance
 rnni_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
@@ -132,7 +132,7 @@ rnni_distance.restype = c_long
 
 findpath_path = lib.return_findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
-findpath_path.restype = TREE_LIST
+findpath_path.restype = TREE_ARRAY
 
 random_walk = lib.random_walk
 random_walk.argtypes = [POINTER(TREE), c_long]
@@ -159,9 +159,9 @@ mrca.argtypes = [POINTER(TREE), c_long, c_long]
 mrca.restype = c_long
 
 first_iteration = lib.first_iteration
-first_iteration.argtypes = [POINTER(TREE_LIST), c_long, c_long, c_long]
+first_iteration.argtypes = [POINTER(TREE_ARRAY), c_long, c_long, c_long]
 first_iteration.restype = c_int
 
 sos = lib.sos
-sos.argtypes = [POINTER(TREE_LIST), POINTER(TREE)]
+sos.argtypes = [POINTER(TREE_ARRAY), POINTER(TREE)]
 sos.restype = c_long

@@ -27,18 +27,18 @@ typedef struct Tree{
   long sos_d;
 } Tree;
 
-typedef struct Tree_List{
+typedef struct Tree_Array{
   Tree * trees;
   long num_trees;
   long max_root_time;
-} Tree_List;
+} Tree_Array;
 
 
 Node empty_node();
 Tree* empty_tree(long num_leaves);
 void copy_tree(Tree* tree, Tree* to_copy_tree);
 Tree* new_tree_copy(Tree* tree);
-Tree_List empty_tree_array(long num_trees, long num_leaves);
+Tree_Array empty_tree_array(long num_trees, long num_leaves);
 void print_tree(Tree* tree);
 
 int same_topology(Tree* tree1, Tree* tree2);

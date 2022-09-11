@@ -130,13 +130,13 @@ int move_up(Tree* tree, long lowest_moving_node, long k){
 }
 
 
-// Compute Tree_List of all RNNI neighbours
-Tree_List rnni_neighbourhood(Tree* tree){
+// Compute Tree_Array of all RNNI neighbours
+Tree_Array rnni_neighbourhood(Tree* tree){
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long max_nh_size = 2 * (num_leaves  - 1);
 
-    Tree_List neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
     long index = 0; //index to the currently last element in neighbour_array
 
     //Deep copy input tree to get neighbouring trees
@@ -170,12 +170,12 @@ Tree_List rnni_neighbourhood(Tree* tree){
 }
 
 
-// Compute Tree_List of all rank neighbours
-Tree_List rank_neighbourhood(Tree* tree){
+// Compute Tree_Array of all rank neighbours
+Tree_Array rank_neighbourhood(Tree* tree){
     long num_leaves = tree->num_leaves;
     long max_nh_size = num_leaves - 1;
 
-    Tree_List neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
     Tree* neighbour = new_tree_copy(tree);
 
     //index to the currently last element in neighbour_array
@@ -337,12 +337,12 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree){
 }
 
 
-// returns the FINDPATH path between two given given trees as Tree_List -- runs findpath and translates path matrix to actual trees on path
-Tree_List return_findpath(Tree* start_tree, Tree* dest_tree){
+// returns the FINDPATH path between two given given trees as Tree_Array -- runs findpath and translates path matrix to actual trees on path
+Tree_Array return_findpath(Tree* start_tree, Tree* dest_tree){
     long num_leaves = start_tree->num_leaves;
     Path fp = findpath(start_tree, dest_tree);
 
-    Tree_List findpath_list = empty_tree_array(fp.length + 1, num_leaves);
+    Tree_Array findpath_list = empty_tree_array(fp.length + 1, num_leaves);
     Tree* next_findpath_tree;
 
     Tree* current_tree;
@@ -393,7 +393,7 @@ long random_walk(Tree* tree, long k){
 // TODO: Do we need this function here?
 // perform one iteration of FP on every tree in tree_list, such that resulting tree has mrca of i and j at position r
 // Note that this may change every tree in treelist
-int first_iteration(Tree_List* tree_array, long node1, long node2, long r){
+int first_iteration(Tree_Array* tree_array, long node1, long node2, long r){
     for(long i = 0; i < tree_array->num_trees; i++){
         while(mrca(&tree_array->trees[i], node1, node2) > r){
             decrease_mrca(&tree_array->trees[i], node1, node2);
@@ -403,7 +403,7 @@ int first_iteration(Tree_List* tree_array, long node1, long node2, long r){
 }
 
 // TODO: Do we need this function here?
-long sos(Tree_List* tree_array, Tree* focal_tree){
+long sos(Tree_Array* tree_array, Tree* focal_tree){
     // compute sum of squared distances for all tree in tree_array to focal_tree
     long sos = 0;
     for(long i = 0; i < tree_array->num_trees; i++){

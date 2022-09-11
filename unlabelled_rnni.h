@@ -6,9 +6,9 @@
 
 typedef Tree Unlabelled_Tree;
 
-typedef Tree_List Unlabelled_Tree_Array;
+typedef Tree_Array Unlabelled_Tree_Array;
 
-Tree_List unlabelled_rnni_neighbourhood(Tree *input_tree);
+Tree_Array unlabelled_rnni_neighbourhood(Tree *input_tree);
 
 int unlabelled_nni_move(Unlabelled_Tree * input_tree, long rank, int child_moves_up);
 

@@ -45,9 +45,9 @@ Tree* new_tree_copy(Tree* tree){
 }
 
 
-// create an empty Tree_List
-Tree_List empty_tree_array(long num_trees, long num_leaves){
-    Tree_List tree_array;
+// create an empty Tree_Array
+Tree_Array empty_tree_array(long num_trees, long num_leaves){
+    Tree_Array tree_array;
     tree_array.num_trees = num_trees;
     tree_array.trees = calloc(num_trees, sizeof(Tree));
     for (long i = 0; i < num_trees; i++){
