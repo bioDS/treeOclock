@@ -27,6 +27,12 @@ Tree* empty_tree(long num_leaves){
 }
 
 
+void free_tree(Tree* tree){
+    free(tree->node_array);
+    free(tree);
+}
+
+
 // copy to_copy_tree into tree
 void copy_tree(Tree* tree, Tree* to_copy_tree){
     long num_nodes = 2 * tree->num_leaves - 1;
@@ -55,6 +61,14 @@ Tree_Array empty_tree_array(long num_trees, long num_leaves){
         tree_array.trees[i].node_array = calloc(2 * num_leaves - 1, sizeof(Node));
     }
     return tree_array;
+}
+
+
+void free_tree_array(Tree_Array tree_array){
+    for (long i = 0; i < tree_array.num_trees; i++){
+        free(tree_array.trees[i].node_array);
+    }
+    free(tree_array.trees);    
 }
 
 

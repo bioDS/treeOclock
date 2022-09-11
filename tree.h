@@ -35,10 +35,16 @@ typedef struct Tree_Array{
 
 
 Node empty_node();
+
 Tree* empty_tree(long num_leaves);
+void free_tree(Tree* tree);
+
 void copy_tree(Tree* tree, Tree* to_copy_tree);
 Tree* new_tree_copy(Tree* tree);
+
 Tree_Array empty_tree_array(long num_trees, long num_leaves);
+void free_tree_array(Tree_Array tree_array);
+
 void print_tree(Tree* tree);
 
 int same_topology(Tree* tree1, Tree* tree2);
