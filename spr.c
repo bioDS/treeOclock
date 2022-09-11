@@ -44,12 +44,9 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
 // The subtree gets re-attached as children[new_child] of the node at position new_parent of the node_list.
 // Note that r and new_sibling are the positions in the node_list rather than actual ranks.
 int unlabelled_spr_move(Tree * input_tree, long r, long new_parent, int child_moving, int new_child_index){
-    if (input_tree->tree == NULL){
-        // printf("Error. No SPR move possible. Given tree doesn't exist.\n");
         return 1;
     }
     if (r > new_parent || input_tree->tree[new_parent].children[new_child_index] > r){
-        // printf("Error. No SPR move possible, as destination edge does not cover rank r.\n");
         return 1;
     }
 
@@ -120,7 +117,6 @@ Tree_List all_spr_neighbourhood(Tree *input_tree, int horizontal){
 
         }
         for (long new_sibling=0; new_sibling<r; new_sibling++){
-            // printf("sibling %ld\n", new_sibling);
             if (input_tree->tree[new_sibling].parent > r){
                 // Two SPR moves, moving either of the children of the node of rank r
                 spr_move(neighbour, r, new_sibling, 0);
@@ -151,7 +147,6 @@ Tree_List all_spr_neighbourhood(Tree *input_tree, int horizontal){
         }
     }
     neighbour_list.num_trees = index;
-    // printf("number of neighbours: %ld\n", index);
     free(neighbour);
     return(neighbour_list);
 }
@@ -223,16 +218,15 @@ Tree_List unlabelled_spr_neighbourhood(Tree *input_tree, int horizontal){
         }
     }
     neighbour_list.num_trees = index;
-    // printf("number of neighbours: %ld\n", index);
     free(neighbour);
     return(neighbour_list);
 }
 
 
 
+// compute a path between start_tree and dest_tree (approximation for shortest path)
+// this approach uses tree search by optimising the sum of mrca differences + symmetric cluster differences
 Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, int hspr){
-    // compute a path between start_tree and dest_tree (approximation for shortest path)
-    // this approach uses tree search by optimising the sum of mrca differences + symmetric cluster differences
     long num_leaves = start_tree->num_leaves;
 
     // Initialise output path
@@ -259,7 +253,6 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
     }
     index+=1;
 
-    // long diff = sum_symmetric_cluster_diff(current_tree, dest_tree);
     long diff = mrca_differences(current_tree, dest_tree, TRUE) + sum_symmetric_cluster_diff(current_tree, dest_tree);
     while (diff > 0){
         Tree_List neighbours = all_spr_neighbourhood(current_tree, hspr);
@@ -267,8 +260,6 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
             Tree* neighbour_pointer;
             neighbour_pointer = &neighbours.trees[i];
             long new_diff =  mrca_differences(neighbour_pointer, dest_tree, TRUE) + sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
-            // long new_diff = sum_symmetric_cluster_diff(neighbour_pointer, dest_tree);
-            // printf("mrca_diff: %ld\n", new_mrca_diff);
             if (new_diff < diff){
                 diff = new_diff;
                 // update current_tree and add it to path list
@@ -288,9 +279,9 @@ Tree_List rankedspr_path_mrca_cluster_diff(Tree* start_tree, Tree* dest_tree, in
 }
 
 
+// compute a path between start_tree and dest_tree (approximation for shortest path)
+// this approach uses tree search by optimising the sum of mrca differences
 Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
-    // compute a path between start_tree and dest_tree (approximation for shortest path)
-    // this approach uses tree search by optimising the sum of mrca differences
     long num_leaves = start_tree->num_leaves;
 
     // Initialise output path
@@ -344,9 +335,9 @@ Tree_List rankedspr_path_mrca_diff(Tree* start_tree, Tree* dest_tree, int hspr){
 }
 
 
+// approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only 
+// We only do an RNNI move if it does not increase the rank difference of any mrcas or parents of leaves when considering clusters in dest_tree
 Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int rank){
-    // approximate the beginning of a shortest RPSR path between start_tree and dest_tree that consists of RNNI moves only 
-    // We only do an RNNI move if it does not increase the rank difference of any mrcas or parents of leaves when considering clusters in dest_tree
     long num_leaves = start_tree->num_leaves;
 
     // Initialise output path
@@ -395,12 +386,6 @@ Tree_List rankedspr_path_rnni_mrca_diff(Tree* start_tree, Tree* dest_tree, int r
             long *neighbour_mrcas = mrca_array(neighbour_pointer, dest_tree);
             // test for every tree in one neighbourhood if the rank difference of a parent of a leaf or an mrca gets worse
             for (long j = 0; j < 2 * num_leaves - 1; j++){
-                if (j >= num_leaves){
-                    // printf("j : %ld, current_mrcas[j]: %ld, neighbour_mrcas[j]: %ld\n", j, current_mrcas[j], neighbour_mrcas[j]);
-                }
-                if (j < num_leaves){
-                    // printf("current tree parent: %ld, neighbour parent: %ld, dest_tree parent: %ld rank: %ld\n", current_tree->tree[j].parent, neighbour_pointer->tree[j].parent, dest_tree->tree[j].parent, j);
-                }
                 if (j < num_leaves && abs(dest_tree->tree[j].parent-current_tree->tree[j].parent) < abs(dest_tree->tree[j].parent-neighbour_pointer->tree[j].parent)){
                     // if there is a leaf whose parent gets moved further away from where it is in the destination tree, compared to current_tree, then this neighbour is not chosen for our path
                     change = 1;
@@ -449,15 +434,10 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
     // array containing at position i the number of trees in i-neighbourhood whose neighbours have already been added to the queue -- needed to derive the distance in the end.
     long* visited_at_distance = calloc(num_leaves * num_leaves, sizeof(long)); // not sure if this is correct
     visited_at_distance[0] = 1;
-    // Check starting_tree:
-    // for (long i = 0; i < 2*num_leaves - 1; i++){
-    //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
-    // }
 
     // Check if start_tree = dest_tree (if so, we output distance 0)
     int found = 0;
     for (long j = 0; j < 2*num_leaves - 1; j++){
-        // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
         if (start_tree->tree[j].parent != dest_tree->tree[j].parent){
             found = 1;
         }
@@ -465,15 +445,6 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
     if(found ==0){
         return(0);
     }
-
-    // // Initialise output path
-    // Tree_List path; // output: list of trees on FP path
-    // path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
-    // path.trees = malloc(path.num_trees * sizeof(Tree));
-    // for (long i = 0; i < path.num_trees; i++){
-    //     path.trees[i].num_leaves = num_leaves;
-    //     path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
-    // }
 
     // current path index (i.e. current path length)
     long index = 0;
@@ -485,10 +456,6 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         current_tree->tree[i] = start_tree->tree[i];
     }
-    // // Add the first tree to output path
-    // for (long i = 0; i < 2 * num_leaves - 1; i++){
-    //     path.trees[index].tree[i] = current_tree->tree[i];
-    // }
     index+=1;
 
     Queue* to_visit = queue_new();  
@@ -530,7 +497,8 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
             // this has no effect on the computed distance, just increases runtime, but we are fine with that.
             Tree* neighbour_pointer = &neighbours.trees[index];
             nni_move(neighbour_pointer, mrca_rank-1, 0);
-            if (mrca(neighbour_pointer, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]) == mrca_rank){ //do exactly the other NNI move, if the first one did not decrease the mrca.
+            if (mrca(neighbour_pointer, dest_tree->tree[r].children[0], dest_tree->tree[r].children[1]) == mrca_rank){
+                //do exactly the other NNI move, if the first one did not decrease the mrca.
                 nni_move(neighbour_pointer, mrca_rank-1, 1);
             }
             index++;
@@ -548,30 +516,15 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
                 }
             }
         }
-        // // print neighbouring trees (for testing)
-        // printf("neighbour trees:\n");
-        // for (long i = 0; i < 5; i++){
-        //     for (long j = 0; j < 2*num_leaves-1; j++){
-        //         printf("children: %ld, %ld, parent: %ld\n", neighbours.trees[i].tree[j].children[0], neighbours.trees[i].tree[j].children[1], neighbours.trees[i].tree[j].parent);
-        //     }
-        // }
-
         // Set the number of neighbours
         neighbours.num_trees=index;
 
-        // update visited_at_distance
-        // printf("before update:\n");
-        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
-        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
         if (visited_at_distance[distance-1] == 0){
             distance++;
         }
         // not sure about this bit
         visited_at_distance[distance-1]--;
         visited_at_distance[distance]+=neighbours.num_trees;
-        // printf("after update:\n");
-        // printf("distance-1: %ld, visited_at_distance[distance-1]: %ld\n", distance-1, visited_at_distance[distance-1]);
-        // printf("distance: %ld, visited_at_distance[distance]: %ld\n", distance, visited_at_distance[distance]);
 
         // Now add neighbours to queue and check if we already reached destination tree.
         // If we reached it, we can stop.
@@ -581,7 +534,6 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
             // Check if we reached destination tree already
             int found = 0;
             for (long j = 0; j < 2*num_leaves - 1; j++){
-                // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
                 if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
                     found = 1;
                 }
@@ -598,9 +550,7 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
                     }
                 }
                 return output;
-                // We found a path
             }
-            // printf("length of queue: %ld\n", queue_get_length(to_visit));
         }
     }
     // If we cannot find destination tree, return -1
@@ -608,6 +558,7 @@ long rankedspr_path_restricting_neighbourhood(Tree* start_tree, Tree* dest_tree,
 }
 
 
+// TODO: move to treeXplore
 // returns length of the path computed by tree search in neighbourhoods (BFS), restricting neighbourhoods to use a top down approach, always taking the neighbour with minimum size of symmetric difference of current cluster
 // more detailed description of this algorithm can be found in git repo rankedSPR_paper
 long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
@@ -622,11 +573,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     long* visited_at_distance = calloc(num_leaves * num_leaves, sizeof(long)); // not sure if this is correct
     visited_at_distance[0] = 1;
 
-    // Check starting_tree:
-    // for (long i = 0; i < 2*num_leaves - 1; i++){
-    //     printf("children: %ld, %ld, parent: %ld\n", start_tree->tree[i].children[0], start_tree->tree[i].children[1], start_tree->tree[i].parent);
-    // }
-
     // Check if start_tree = dest_tree (if so, we output distance 0)
     int found = 0;
     for (long j = 0; j < 2*num_leaves - 1; j++){
@@ -639,15 +585,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
         return(0);
     }
 
-    // // Initialise output path
-    // Tree_List path; // output: list of trees on FP path
-    // path.num_trees = 0.5 * (num_leaves-1) * (num_leaves-2) + 1; //diameter of rankedspr is less than quadratic
-    // path.trees = malloc(path.num_trees * sizeof(Tree));
-    // for (long i = 0; i < path.num_trees; i++){
-    //     path.trees[i].num_leaves = num_leaves;
-    //     path.trees[i].tree = malloc((2* num_leaves - 1) * sizeof(Node));
-    // }
-
     // current path index (i.e. current path length)
     long index = 0;
 
@@ -658,10 +595,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     for (long i = 0; i < 2 * num_leaves - 1; i++){
         current_tree->tree[i] = start_tree->tree[i];
     }
-    // // Add the first tree to output path
-    // for (long i = 0; i < 2 * num_leaves - 1; i++){
-    //     path.trees[index].tree[i] = current_tree->tree[i];
-    // }
     index+=1;
 
     Queue* to_visit = queue_new();  
@@ -672,7 +605,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
     while (queue_is_empty(to_visit) != 0){
         num_iterations++;
         current_tree = queue_pop_head(to_visit);
-        // printf("d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
         if (visited_at_distance[distance-1] == 0){
             distance++;
         }
@@ -706,15 +638,12 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
             }
             // Check if we reached destination tree already
             int found = 0;
-            // printf("neighbours:\n");
             for (long j = 0; j < 2*num_leaves - 1; j++){
-                // printf("current_parent: %ld, dest_parent: %ld\n", neighbours.trees[i].tree[j].parent, dest_tree->tree[j].parent);
                 if (neighbours.trees[i].tree[j].parent != dest_tree->tree[j].parent){
                     found = 1;
                 }
             }
             if (found == 0){
-                // printf("found. d: %ld, visited at distance d-1, d, d+1: %ld, %ld, %ld\n", distance, visited_at_distance[distance-1],visited_at_distance[distance],visited_at_distance[distance+1]);
                 if (visited_at_distance[distance]!=0){
                     output = distance;
                 }else{
@@ -723,7 +652,6 @@ long rankedspr_path_top_down_symm_diff(Tree* start_tree, Tree* dest_tree){
                 return output;
                 // We found a path
             }
-            // printf("length of queue: %ld\n", queue_get_length(to_visit));
         }
     }
     // If we cannot find destination tree, return -1
@@ -872,12 +800,12 @@ long rankedspr_path_bottom_up_hspr_dist(Tree *start_tree, Tree *dest_tree){
 }
 
 
+// TODO: move this to treeXplore
+// compute first RNNI moves on shortest RSPR path.
+// Follow FP bottom-up approach, but only accept move that does not move any mrca's or parents of leaves in the wrong direction
+// possible extension: if no such FP move exist, try moving one of the children that build current cluster in tree2 down.
+// this extension is not implemented, because the first part already doesn't work.
 long fp_rspr(Tree* tree1, Tree* tree2){
-    // compute first RNNI moves on shortest RSPR path.
-    // Follow FP bottom-up approach, but only accept move that does not move any mrca's or parents of leaves in the wrong direction
-    // possible extension: if no such FP move exist, try moving one of the children that build current cluster in tree2 down.
-    // this extension is not implemented, because the first part already doesn't work.
-
     long num_leaves = tree1->num_leaves;
     long num_nodes = 2 * num_leaves -1;
     long path_length = 0; // output: length of RNNI path

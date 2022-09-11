@@ -199,8 +199,8 @@ Tree_List rank_neighbourhood(Tree* tree){
 }
 
 
+// Perform a random RNNI move (at uniform) on tree
 int uniform_neighbour(Tree* tree){
-    // Perform a random RNNI move (at uniform) on tree
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long num_moves = 0;
@@ -373,8 +373,8 @@ Tree_List return_findpath(Tree* start_tree, Tree* dest_tree){
 }
 
 
+// Perform a series of k random RNNI moves to receive a random walk in RNNI, starting at input tree
 long random_walk(Tree* tree, long k){
-    // Perform a series of k random RNNI moves to receive a random walk in RNNI, starting at input tree
     Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
     current_tree->num_leaves = tree->num_leaves;
     current_tree->tree = malloc((2 * tree->num_leaves - 1) * sizeof(Node)); // deep copy start tree
@@ -391,23 +391,23 @@ long random_walk(Tree* tree, long k){
 
 
 // TODO: Do we need this function here?
-int first_iteration(Tree_List* treelist, long node1, long node2, long r){
-    // perform one iteration of FP on every tree in tree_list, such that resulting tree has mrca of i and j at position r
-    // Note that this may change every tree in treelist
-    for(long i = 0; i < treelist->num_trees; i++){
-        while(mrca(&treelist->trees[i], node1, node2) > r){
-            decrease_mrca(&treelist->trees[i], node1, node2);
+// perform one iteration of FP on every tree in tree_list, such that resulting tree has mrca of i and j at position r
+// Note that this may change every tree in treelist
+int first_iteration(Tree_List* tree_array, long node1, long node2, long r){
+    for(long i = 0; i < tree_array->num_trees; i++){
+        while(mrca(&tree_array->trees[i], node1, node2) > r){
+            decrease_mrca(&tree_array->trees[i], node1, node2);
         }
     }
     return 0;
 }
 
 // TODO: Do we need this function here?
-long sos(Tree_List* treelist, Tree* focal_tree){
-    // compute sum of squared distances for all tree in treelist to focal_tree
+long sos(Tree_List* tree_array, Tree* focal_tree){
+    // compute sum of squared distances for all tree in tree_array to focal_tree
     long sos = 0;
-    for(long i = 0; i < treelist->num_trees; i++){
-        sos += rnni_distance(&treelist->trees[i], focal_tree);
+    for(long i = 0; i < tree_array->num_trees; i++){
+        sos += rnni_distance(&tree_array->trees[i], focal_tree);
     }
     return sos;
 }

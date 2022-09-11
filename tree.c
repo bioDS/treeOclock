@@ -1,8 +1,9 @@
-/*BAsic functions for ranked trees*/
+/*Basic functions for ranked trees*/
 
 #include "tree.h"
 
 
+// create empty node
 Node empty_node(){
     Node new_node;
     new_node.parent = -1;
@@ -13,8 +14,8 @@ Node empty_node(){
 }
 
 
+// create empty tree on num_leaves leaves
 Tree* empty_tree(long num_leaves){
-    // initialise tree on num_leaves leaves
     long num_nodes = 2 * num_leaves - 1;
     Tree* new_tree = malloc(sizeof(Tree));
     new_tree->tree = calloc(num_nodes, sizeof(Node));
@@ -26,8 +27,8 @@ Tree* empty_tree(long num_leaves){
 }
 
 
+// copy to_copy_tree into tree
 void copy_tree(Tree* tree, Tree* to_copy_tree){
-    // copy to_copy tree into tree
     long num_nodes = 2 * tree->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++){
         tree->tree[i] = to_copy_tree->tree[i];
@@ -35,8 +36,8 @@ void copy_tree(Tree* tree, Tree* to_copy_tree){
 }
 
 
+// create new copy of tree
 Tree* new_tree_copy(Tree* tree){
-    // deep copy tree
     long num_leaves = tree->num_leaves;
     Tree* tree_copy = empty_tree(num_leaves);
     copy_tree(tree_copy, tree);
@@ -44,6 +45,7 @@ Tree* new_tree_copy(Tree* tree){
 }
 
 
+// create an empty Tree_List
 Tree_List empty_tree_array(long num_trees, long num_leaves){
     Tree_List tree_array;
     tree_array.num_trees = num_trees;
@@ -56,8 +58,8 @@ Tree_List empty_tree_array(long num_trees, long num_leaves){
 }
 
 
+// print parents and children for each node in tree
 void print_tree(Tree* tree){
-    // print parents and children for each node in tree
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     for (long rank = 0; rank < num_nodes; rank++){
@@ -114,8 +116,8 @@ long mrca(Tree* input_tree, long node1, long node2){
 }
 
 
+// return array with rank(mrca_{tree1}(C_i)) at position i where C_i is the cluster induced by node of rank i in tree2
 long* mrca_array(Tree* tree1, Tree* tree2){
-    // return array with rank(mrca_{tree1}(C_i)) at position i where C_i is the cluster induced by node of rank i in tree2
     long num_leaves = tree1->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long *mrca_array = calloc(num_nodes, sizeof(long));
@@ -143,9 +145,9 @@ long* mrca_array(Tree* tree1, Tree* tree2){
 }
 
 
+// Compute differences of ranks of mrcas of all clusters of tree2 btw tree1 and tree2
+// Also add ranks of parents of leaves if include_leaf_parents == 0
 long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents){
-    // Compute differences of ranks of mrcas of all clusters of tree2 btw tree1 and tree2
-    // Also add ranks of parents of leaves if include_leaf_parents == 0
     long sum = 0;
     long num_leaves = tree2->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
@@ -163,8 +165,8 @@ long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents){
 }
 
 
+// return matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
 long ** get_clusters(Tree* tree){
-    // return matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in cluster
     long num_leaves = tree->num_leaves;
     long ** clusters = calloc(num_leaves - 1, sizeof(long *));
     for (long i = 0; i < num_leaves - 1; i++){
@@ -187,8 +189,8 @@ long ** get_clusters(Tree* tree){
 }
 
 
+// Computes sum of symmetric differences of clusters of tree1 and tree2 for all ranks i=1,..,n-1
 long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2){
-    // Computes sum of symmetric differences of clusters of tree1 and tree2 for all ranks i=1,..,n-1
     long num_leaves = tree1->num_leaves;
 
     long ** clusters_t1 = get_clusters(tree1);
@@ -209,8 +211,8 @@ long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2){
 }
 
 
+// Compute symmetric difference of clusters induced by nodes of rank k in tree1 and tree2
 long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k){
-    // Compute symmetric difference of clusters induced by nodes of rank k in tree1 and tree2
     long num_leaves = tree1->num_leaves;
     long ** clusters_t1 = get_clusters(tree1);
     long ** clusters_t2 = get_clusters(tree2);
