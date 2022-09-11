@@ -44,8 +44,6 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
 // The subtree gets re-attached as children[new_child] of the node at position new_parent of the node_list.
 // Note that r and new_sibling are the positions in the node_list rather than actual ranks.
 int unlabelled_spr_move(Tree * input_tree, long r, long new_parent, int child_moving, int new_child_index){
-        return 1;
-    }
     if (r > new_parent || input_tree->tree[new_parent].children[new_child_index] > r){
         return 1;
     }
