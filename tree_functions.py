@@ -120,9 +120,9 @@ mrca = lib.mrca
 mrca.argtypes = [POINTER(TREE), c_long, c_long]
 mrca.restype = c_long
 
-first_iteration = lib.first_iteration
-first_iteration.argtypes = [POINTER(TREE_ARRAY), c_long, c_long, c_long]
-first_iteration.restype = c_int
+first_iteration_fp = lib.first_iteration_fp
+first_iteration_fp.argtypes = [POINTER(TREE_ARRAY), c_long, c_long, c_long]
+first_iteration_fp.restype = c_int
 
 sos = lib.sos
 sos.argtypes = [POINTER(TREE_ARRAY), POINTER(TREE)]
