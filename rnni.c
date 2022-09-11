@@ -411,30 +411,3 @@ long sos(Tree_Array* tree_array, Tree* focal_tree){
     }
     return sos;
 }
-
-// TODO: Do I really need this function?
-// compute length of shortest path among those that only have rank moves (we can use top-down mrca decreasing approach here!)
-long shortest_rank_path(Tree* start_tree, Tree* dest_tree){
-    long num_leaves = start_tree->num_leaves;
-    // Deep copy start_tree to perform moves on that tree
-     Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
-    current_tree->num_leaves = num_leaves;
-    current_tree->node_array = malloc((2 * num_leaves - 1) * sizeof(Node)); // deep copy start tree
-    for (long i = 0; i < 2 * num_leaves - 1; i++){
-        current_tree->node_array[i] = start_tree->node_array[i];
-    }
-
-    long path_length = 0;
-    for(int i = num_leaves; i < 2 * num_leaves - 1; i++){
-        if (!((current_tree->node_array[i].children[0] == dest_tree->node_array[i].children[0] && current_tree->node_array[i].children[1] == dest_tree->node_array[i].children[1])||
-        (current_tree->node_array[i].children[0] == dest_tree->node_array[i].children[1] && current_tree->node_array[i].children[1] == dest_tree->node_array[i].children[0]))){
-            long current_mrca = mrca(current_tree, dest_tree->node_array[i].children[0], dest_tree->node_array[i].children[1]);
-            while(current_mrca != i){
-                rank_move(current_tree, current_mrca-1);
-                current_mrca--;
-                path_length++;
-            }
-        }
-    }
-    return path_length;
-}

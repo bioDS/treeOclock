@@ -74,10 +74,6 @@ all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
 all_spr_neighbourhood.restype = TREE_ARRAY
 
-shortest_rank_path = lib.shortest_rank_path
-shortest_rank_path.argtypes = [POINTER(TREE), POINTER(TREE)]
-shortest_rank_path.restype = c_long
-
 hspr_neighbourhood = lib.hspr_neighbourhood
 hspr_neighbourhood.argtypes = [POINTER(TREE)]
 hspr_neighbourhood.restype = TREE_ARRAY
