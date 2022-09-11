@@ -139,7 +139,7 @@ Tree_List rnni_neighbourhood(Tree* tree){
     Tree_List neighbour_array = empty_tree_array(max_nh_size, num_leaves);
     long index = 0; //index to the currently last element in neighbour_array
 
-    //Deep copy input tree to get neigh bouring trees
+    //Deep copy input tree to get neighbouring trees
     Tree* neighbour = new_tree_copy(tree);
     Tree* next_neighbour_array;
     next_neighbour_array = &neighbour_array.trees[index];
