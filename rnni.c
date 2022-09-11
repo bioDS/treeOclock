@@ -1,5 +1,4 @@
 /*Efficient implementation of FINDPATH on ranked trees*/
-// Author: Lena Collienne
 
 #include "rnni.h"
 
@@ -99,8 +98,7 @@ int decrease_mrca(Tree* tree, long node1, long node2){
     }
     // now update tree to become neighbour
     copy_tree(tree, neighbour);
-    free(neighbour);
-    printf("move type: %d\n", move_type);
+    free_tree(neighbour);
     return move_type;
 }
 
@@ -165,7 +163,7 @@ Tree_Array rnni_neighbourhood(Tree* tree){
         }
     }
     neighbour_array.num_trees = index;
-    free(neighbour);
+    free_tree(neighbour);
     return(neighbour_array);
 }
 
@@ -194,7 +192,7 @@ Tree_Array rank_neighbourhood(Tree* tree){
         }
     }
     neighbour_array.num_trees = index;
-    free(neighbour);
+    free_tree(neighbour);
     return(neighbour_array);
 }
 
@@ -241,9 +239,6 @@ int uniform_neighbour(Tree* tree){
         nni_move(tree, move_list[r][0], 1);
     }
     // free move_list
-    for (long i = 0; i < max_nh_size; i++){ // max number of moves is reached if every internal edge has length one (caterpillar)
-        free(move_list[i]);
-    }
     free(move_list);
     return EXIT_SUCCESS;
 }
@@ -260,7 +255,7 @@ Path findpath(Tree* start_tree, Tree* dest_tree){
     Path path;
     path.moves = malloc((max_dist + 1) * sizeof(long*));
     for (long i = 0; i < max_dist + 1; i++){
-        path.moves[i] = malloc(2 * sizeof(int));
+        path.moves[i] = malloc(2 * sizeof(long));
         path.moves[i][0] = 0;
         path.moves[i][1] = 0;
     }
@@ -281,7 +276,7 @@ Path findpath(Tree* start_tree, Tree* dest_tree){
                 current_mrca--;
             }
         }
-        free(current_tree->node_array);
+        free_tree(current_tree);
         path.length = path_index;
     }
     return path;
@@ -293,10 +288,6 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree){
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long path_length = 0;
-    if (start_tree->node_array == NULL){
-        printf("Error. Start tree doesn't exist.\n");
-        return EXIT_FAILURE;
-    }
     if (dest_tree->node_array == NULL){
         printf("Error. Destination tree doesn't exist.\n");
         return EXIT_FAILURE;
@@ -332,7 +323,7 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree){
         }
     }
     // TODO: Add free_tree function
-    free(current_tree->node_array);
+    free_tree(current_tree);
     return path_length;
 }
 
@@ -358,34 +349,28 @@ Tree_Array return_findpath(Tree* start_tree, Tree* dest_tree){
         else{
             nni_move(current_tree, fp.moves[i][0], fp.moves[i][1]-1);
         }
-        // deep copy currently last tree one path
     }
     // add last tree
     next_findpath_tree = &findpath_list.trees[fp.length];
     copy_tree(next_findpath_tree, current_tree);
+
     for (int i = 0; i < fp.length + 1; i++){
         free(fp.moves[i]);
     }
     free(fp.moves);
-    free(current_tree->node_array);
-    free(next_findpath_tree->node_array);
+    free_tree(current_tree);
     return findpath_list;
 }
 
 
 // Perform a series of k random RNNI moves to receive a random walk in RNNI, starting at input tree
 long random_walk(Tree* tree, long k){
-    Tree* current_tree = malloc(sizeof(Node*) + 3 * sizeof(long));
-    current_tree->num_leaves = tree->num_leaves;
-    current_tree->node_array = malloc((2 * tree->num_leaves - 1) * sizeof(Node)); // deep copy start tree
-    for (long i = 0; i < 2 * tree->num_leaves - 1; i++){
-        current_tree->node_array[i] = tree->node_array[i];
-    }
+    Tree* current_tree = new_tree_copy(tree);
     for (long i = 0; i < k; i++){
         uniform_neighbour(current_tree);
     }
     long distance = rnni_distance(current_tree, tree);
-    free(current_tree);
+    free_tree(current_tree);
     return(distance);
 }
 
