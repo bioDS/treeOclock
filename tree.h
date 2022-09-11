@@ -21,14 +21,14 @@ typedef struct Node{
 } Node;
 
 typedef struct Tree{
-  Node * tree;
+  Node* node_array;
   long num_leaves;
   long root_time;
   long sos_d;
 } Tree;
 
 typedef struct Tree_Array{
-  Tree * trees;
+  Tree* trees;
   long num_trees;
   long max_root_time;
 } Tree_Array;

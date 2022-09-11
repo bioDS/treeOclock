@@ -18,10 +18,10 @@ Node empty_node(){
 Tree* empty_tree(long num_leaves){
     long num_nodes = 2 * num_leaves - 1;
     Tree* new_tree = malloc(sizeof(Tree));
-    new_tree->tree = calloc(num_nodes, sizeof(Node));
+    new_tree->node_array = calloc(num_nodes, sizeof(Node));
     new_tree->num_leaves = num_leaves;
     for (long i = 0; i < num_nodes; i++){
-        new_tree->tree[i] = empty_node();
+        new_tree->node_array[i] = empty_node();
     }
     return new_tree;
 }
@@ -31,7 +31,7 @@ Tree* empty_tree(long num_leaves){
 void copy_tree(Tree* tree, Tree* to_copy_tree){
     long num_nodes = 2 * tree->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++){
-        tree->tree[i] = to_copy_tree->tree[i];
+        tree->node_array[i] = to_copy_tree->node_array[i];
     }
 }
 
@@ -52,7 +52,7 @@ Tree_Array empty_tree_array(long num_trees, long num_leaves){
     tree_array.trees = calloc(num_trees, sizeof(Tree));
     for (long i = 0; i < num_trees; i++){
         tree_array.trees[i].num_leaves = num_leaves;
-        tree_array.trees[i].tree = calloc(2 * num_leaves - 1, sizeof(Node));
+        tree_array.trees[i].node_array = calloc(2 * num_leaves - 1, sizeof(Node));
     }
     return tree_array;
 }
@@ -63,7 +63,7 @@ void print_tree(Tree* tree){
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     for (long rank = 0; rank < num_nodes; rank++){
-        printf("Node at rank %ld: parent %ld, children %ld, %ld\n", rank, tree->tree[rank].parent, tree->tree[rank].children[0], tree->tree[rank].children[1]);
+        printf("Node at rank %ld: parent %ld, children %ld, %ld\n", rank, tree->node_array[rank].parent, tree->node_array[rank].children[0], tree->node_array[rank].children[1]);
     }
 }
 
@@ -73,7 +73,7 @@ int same_topology(Tree* tree1, Tree* tree2){
     long num_leaves = tree1->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     for(long i = num_leaves; i < num_nodes; i++){
-        if (tree1->tree[i].parent != tree2->tree[i].parent){
+        if (tree1->node_array[i].parent != tree2->node_array[i].parent){
             return FALSE;
         }
     }
@@ -85,7 +85,7 @@ int same_topology(Tree* tree1, Tree* tree2){
 int same_tree(Tree* tree1, Tree* tree2){
     long num_nodes = 2 * tree1->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++){
-        if (tree1->tree[i].parent != tree2->tree[i].parent){
+        if (tree1->node_array[i].parent != tree2->node_array[i].parent){
             return FALSE;
         }
     }
@@ -99,13 +99,13 @@ long mrca(Tree* input_tree, long node1, long node2){
     long rank2 = node2;
     while (rank1 != rank2){
         if (rank1 < rank2){
-            rank1 = input_tree->tree[rank1].parent;
+            rank1 = input_tree->node_array[rank1].parent;
             if (rank1 == -1){
                 printf("Cannot find mrca, reached root.");
                 return -1;
             }
         } else{
-            rank2 = input_tree->tree[rank2].parent;
+            rank2 = input_tree->node_array[rank2].parent;
             if (rank2 == -1){
                 printf("Cannot find mrca, reached root.");
                 return -1;
@@ -125,17 +125,17 @@ long* mrca_array(Tree* tree1, Tree* tree2){
     for (long i = num_leaves; i < num_nodes; i++){
         // find nodes (child0, child1) in tree1 that are mrcas of the clusters induced by children of node of rank i in tree2
         long child0;
-        if (tree2->tree[i].children[0] < num_leaves){
-            child0 = tree2->tree[i].children[0];
+        if (tree2->node_array[i].children[0] < num_leaves){
+            child0 = tree2->node_array[i].children[0];
         } else{
-            child0 = mrca_array[tree2->tree[i].children[0]];
+            child0 = mrca_array[tree2->node_array[i].children[0]];
         }
 
         long child1;
-        if (tree2->tree[i].children[1] < num_leaves){
-            child1 = tree2->tree[i].children[1];
+        if (tree2->node_array[i].children[1] < num_leaves){
+            child1 = tree2->node_array[i].children[1];
         } else{
-            child1 = mrca_array[tree2->tree[i].children[1]];
+            child1 = mrca_array[tree2->node_array[i].children[1]];
         }
 
         long current_mrca = mrca(tree1, child0, child1);
@@ -154,7 +154,7 @@ long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents){
     // First iterate through leaves
     if (include_leaf_parents == TRUE){
         for (long i = 0; i < num_leaves; i++){
-            sum += abs(tree1->tree[i].parent - tree2->tree[i].parent);
+            sum += abs(tree1->node_array[i].parent - tree2->node_array[i].parent);
         }
     }
     long* mrcas = mrca_array(tree1, tree2);
@@ -179,8 +179,8 @@ long ** get_clusters(Tree* tree){
         }
         // fill clusters
         long j = i;
-        while (tree->tree[j].parent != -1){
-            j = tree->tree[j].parent;
+        while (tree->node_array[j].parent != -1){
+            j = tree->node_array[j].parent;
             clusters[j - num_leaves][i] = 1;
         }
         clusters[num_leaves - 2][i] = 1;
