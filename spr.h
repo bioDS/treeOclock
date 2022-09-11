@@ -10,6 +10,5 @@ int unlabelled_spr_move(Tree * input_tree, long r, long new_parent, int child_mo
 Tree_List all_spr_neighbourhood(Tree *input_tree, int horizontal);
 Tree_List spr_neighbourhood(Tree* input_tree);
 Tree_List hspr_neighbourhood(Tree* input_tree);
-Tree_List unlabelled_spr_neighbourhood(Tree* input_tree, int horizontal);
 
 #endif
