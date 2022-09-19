@@ -102,18 +102,18 @@ def read_newick(s, factor = 0):
 
     times = tree_times(edges, children)
 
-    # Create empty node_list for output TREE
+    # Create empty node_array for output TREE
     num_nodes = 2*len(children)+1
-    node_list = (NODE * num_nodes)()
+    node_array = (NODE * num_nodes)()
 
     empty_children = (c_long * 2)()
     empty_children[0] = -1
     empty_children[1] = -1
 
     for i in range(0, num_nodes):
-        node_list[i] = NODE(-1, empty_children, 0)
+        node_array[i] = NODE(-1, empty_children, 0)
 
-    leaves.sort() # Sort leaves alphabetical to save them in node_list
+    leaves.sort() # Sort leaves alphabetical to save them in node_array
 
     ranking = list(times.values()) # Internal nodes ordered according to ranking (increasing time)
     ranking.sort()
@@ -141,27 +141,27 @@ def read_newick(s, factor = 0):
             print('The factor for discretising trees needs to be bigger')
             return 1
         # Set node time in C data structure
-        node_list[i].time = node_time
+        node_array[i].time = node_time
 
         # Find children and add data to C data structure
         child_1 = children[current_node].pop()
         child_2 = children[current_node].pop()
-        # Distinguish whether child is leaf or not to get correct index in node_list
+        # Distinguish whether child is leaf or not to get correct index in node_array
         for k in [0,1]:
             child = locals()["child_" + str(k+1)]
             if 'int' in child:
                 child_rank = ranking.index(times[child])
-                node_list[i].children[k] = child_rank + len(leaves)
-                node_list[child_rank + len(leaves)].parent = i
+                node_array[i].children[k] = child_rank + len(leaves)
+                node_array[child_rank + len(leaves)].parent = i
             else:
-                node_list[i].children[k] = leaves.index(child)
-                node_list[leaves.index(child)].parent = i
+                node_array[i].children[k] = leaves.index(child)
+                node_array[leaves.index(child)].parent = i
         # We keep the node time for the next iteration to make sure no two nodes get the same time
         prev_node_time = node_time
 
     # Create and return output tree:
     num_leaves = len(leaves)
-    output_tree = TREE(node_list, num_leaves, node_list[num_nodes - 1].time, -1)
+    output_tree = TREE(node_array, num_leaves, node_array[num_nodes - 1].time, -1)
     return output_tree
 
 
@@ -212,18 +212,18 @@ def read_from_cluster(s):
 
     # We are now ready to use our information to create a tree in the C data structure
     num_nodes = 2*num_leaves-1
-    node_list = (NODE * num_nodes)()
+    node_array = (NODE * num_nodes)()
 
-    # empty child array for initialising the node_list.
+    # empty child array for initialising the node_array.
     empty_children = (c_long * 2)()
     empty_children[0] = -1
     empty_children[1] = -1
 
     # Initialise Node list
     for i in range(0, num_nodes):
-        node_list[i] = NODE(-1, empty_children, 0)
+        node_array[i] = NODE(-1, empty_children, 0)
         if i >= num_leaves:
-            node_list[i].time = i - (num_leaves-1)
+            node_array[i].time = i - (num_leaves-1)
 
     for i in range(0,num_leaves):
         highest_ancestor.append(i)
@@ -239,13 +239,13 @@ def read_from_cluster(s):
             elif child1 != highest_ancestor[leaf_index]:
                 child2 = highest_ancestor[leaf_index]
             highest_ancestor[leaf_index]=i+num_leaves-1
-        node_list[i+num_leaves-1].children[0]=child1
-        node_list[i+num_leaves-1].children[1]=child2
-        node_list[child1].parent = i+num_leaves-1
-        node_list[child2].parent = i+num_leaves-1
-        node_list[i+num_leaves-1].time = int(m[-1])
+        node_array[i+num_leaves-1].children[0]=child1
+        node_array[i+num_leaves-1].children[1]=child2
+        node_array[child1].parent = i+num_leaves-1
+        node_array[child2].parent = i+num_leaves-1
+        node_array[i+num_leaves-1].time = int(m[-1])
 
-    output_tree = TREE(node_list, num_leaves, node_list[num_nodes - 1].time, -1)
+    output_tree = TREE(node_array, num_leaves, node_array[num_nodes - 1].time, -1)
     return output_tree
 
 

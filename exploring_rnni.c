@@ -14,8 +14,8 @@ long random_walk(Tree* tree, long k){
 }
 
 
-// perform one iteration of FP on every tree in tree_list, such that resulting tree has mrca of i and j at position r
-// Note that this may change every tree in treelist
+// perform one iteration of FP on every tree in tree_array, such that resulting tree has mrca of i and j at position r
+// Note that this may change every tree in treearray
 int first_iteration_fp(Tree_Array* tree_array, long node1, long node2, long r){
     for(long i = 0; i < tree_array->num_trees; i++){
         while(mrca(&tree_array->trees[i], node1, node2) > r){

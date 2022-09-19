@@ -14,7 +14,7 @@ int unlabelled_rank_move(Unlabelled_Tree * tree, long rank){
 
 
 // Compute Unlabelled_Tree_Array of all unlabelled RNNI neighbours
-// Note that some trees might appear multiple times in the output list!
+// Note that some trees might appear multiple times in the output array!
 Unlabelled_Tree_Array unlabelled_rnni_neighbourhood(Unlabelled_Tree *tree){
     long num_leaves = tree->num_leaves;
     long max_nh_size = 2 * (num_leaves - 1);

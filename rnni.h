@@ -9,8 +9,8 @@ typedef struct Path{
   long length;
 } Path;
 
-int nni_move(Tree * input_tree, long rank_in_list, int child_moves_up);
-int rank_move(Tree * input_tree, long rank_in_list);
+int nni_move(Tree * input_tree, long r, int child_moves_up);
+int rank_move(Tree * input_tree, long r);
 int move_up(Tree * itree, long i, long k);
 
 Tree_Array rnni_neighbourhood(Tree *input_tree);

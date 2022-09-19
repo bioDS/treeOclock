@@ -3,8 +3,8 @@
 #include "spr.h"
 
 
-// ranked SPR move pruning the child with index child_moving of the node at position r of the node_list
-// reattachment as sibling of the node at position new_sibling in node_list
+// ranked SPR move pruning the child with index child_moving of the node at position r of the node_array
+// reattachment as sibling of the node at position new_sibling in node_array
 int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
     if (new_sibling > r || input_tree->node_array[new_sibling].parent < r){
         printf("Error. No SPR move possible. Destination edge does not cover rank r.\n");
@@ -35,8 +35,8 @@ int spr_move(Tree * input_tree, long r, long new_sibling, int child_moving){
 }
 
 
-// unlabelled ranked SPR move pruning the child with index child_moving of node at position r of the node_list
-// re-attaching as children[new_child] of tree at position new_parent of node_list
+// unlabelled ranked SPR move pruning the child with index child_moving of node at position r of the node_array
+// re-attaching as children[new_child] of tree at position new_parent of node_array
 int unlabelled_spr_move(Tree * input_tree, long r, long new_parent, int child_moving, int new_child_index){
     if (r > new_parent || input_tree->node_array[new_parent].children[new_child_index] > r){
         printf("Error. No unlabelled SPR move possible\n");
@@ -74,7 +74,7 @@ Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal){
     long num_leaves = tree->num_leaves;
     long max_nh_size = 2 * num_leaves * (num_leaves - 1);
 
-    // Initialise list of neighbours
+    // Initialise array of neighbours
     Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
     long index = 0; //index to the currently last element in neighbour_array
 
@@ -83,7 +83,7 @@ Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal){
     Tree* next_neighbour_array;
     next_neighbour_array = &neighbour_array.trees[index];
 
-    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node array, where the first n entries are leaves)
     for (long r=num_leaves; r<2* num_leaves-2; r++){
         // Check if we can do rank move:
         if (horizontal == FALSE && r < 2*num_leaves - 2 && tree->node_array[r].parent != r+1){
