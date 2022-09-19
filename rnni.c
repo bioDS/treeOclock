@@ -3,7 +3,9 @@
 #include "rnni.h"
 
 
-// NNI move on edge bounded by rank and rank + 1, moving child_moves_up (index) of the lower node up
+// NNI move on edge bounded by rank and rank + 1
+// moves child_moves_up (index -- 0 or 1) of the lower node up
+// i.e. tree.node_array[rank].children[child_moves_up] has parent of rank rank+1 after move
 int nni_move(Tree* tree, long rank, int child_moves_up){
     Node* upper_node;
     upper_node = &tree->node_array[rank + 1];
@@ -15,7 +17,8 @@ int nni_move(Tree* tree, long rank, int child_moves_up){
     }
     int child_moved_up;
     for (int i = 0; i < 2; i++){
-        if (upper_node->children[i] != rank){ //find the child of the node of rank k+1 that is not the node of rank k
+        //find the child of the node of rank rank+1 that is not the node of rank rank
+        if (upper_node->children[i] != rank){
             // update parent/children relations to get nni neighbour
             tree->node_array[upper_node->children[i]].parent = rank;
             tree->node_array[lower_node->children[child_moves_up]].parent = rank+1;
@@ -103,7 +106,10 @@ int decrease_mrca(Tree* tree, long node1, long node2){
 }
 
 
-// Move up internal nodes that are at position >i in node list so that there are no nodes with rank less than k in the tree at the end (i.e. length moves that move nodes up -- see pseudocode FindPath^+)
+// Use length moves to move up internal nodes between lowest_moving_node (including)
+// and k (excluding) in tree.node_array
+// in the end there are no nodes with rank less than k in the tree
+// these are length moves that move nodes up -- see pseudocode FindPath^+ in DCT paper
 int move_up(Tree* tree, long lowest_moving_node, long k){
     long num_nodes = 2 * tree->num_leaves - 1;
     long num_moves = 0; // counter for the number of moves that are necessary
@@ -142,17 +148,18 @@ Tree_Array rnni_neighbourhood(Tree* tree){
     Tree* next_neighbour_array;
     next_neighbour_array = &neighbour_array.trees[index];
 
-    // Loop through all possible ranks on which moves can happen ('ranks' here means position in node list, where the first n entries are leaves)
+    // Loop through all possible ranks on which moves can happen
+    // 'ranks' here means position in node list, where the first n entries are leaves
     for (long r=num_leaves; r < num_nodes - 1; r++){
         if (tree->node_array[r].parent != r+1){
-            // rank move:
+            // no edge -> rank move:
             rank_move(neighbour, r);
             copy_tree(next_neighbour_array, neighbour);
             index++;
             next_neighbour_array = &neighbour_array.trees[index];
             copy_tree(neighbour, tree);
         } else{
-            // 2 NNI moves
+            // edge -> 2 NNI moves
             for (long child_moves_up=0; child_moves_up<2; child_moves_up ++){
                 nni_move(neighbour, r, child_moves_up);
                 copy_tree(next_neighbour_array, neighbour);
@@ -298,13 +305,14 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree){
     }
     long current_mrca_rank; //rank of the mrca that needs to be moved down
     Tree* current_tree = new_tree_copy(start_tree);
+    // loop through internal nodes, construct cluster of node at position i in iteration i
     for (long i = num_leaves; i < num_nodes; i++){
         // if needed: length moves moving all nodes up that shouldn't be below node i in dest_tree
         // (this cannot happen in RNNI)
         if (current_tree->node_array[i].time < dest_tree->node_array[i].time){
             path_length += move_up(current_tree, i, dest_tree->node_array[i].time);
         }
-        // we now need to find the current mrca and decrease its time in the tree
+        // find mrca of children of currently considered node (i) -> current mrca
         current_mrca_rank = mrca(current_tree, dest_tree->node_array[i].children[0], dest_tree->node_array[i].children[1]);
         Node* current_mrca;
         current_mrca = &current_tree->node_array[current_mrca_rank];
