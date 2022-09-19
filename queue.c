@@ -1,8 +1,7 @@
 // author: Kieran Elmes
-# include "queue.h"
+#include "queue.h"
 
-Queue* queue_new()
-{
+Queue* queue_new() {
     Queue* new_queue = (Queue*)malloc(sizeof *new_queue);
     new_queue->length = 0;
     new_queue->first_item = NULL;
@@ -10,21 +9,19 @@ Queue* queue_new()
     return new_queue;
 }
 
-long queue_is_empty(Queue* q)
-{
+long queue_is_empty(Queue* q) {
     if (q->length == 0)
         return 0;
     return 1;
 }
 
-void queue_push_tail(Queue* q, void* item)
-{
+void queue_push_tail(Queue* q, void* item) {
     struct Queue_Item* new_queue_item = (Queue_Item*)malloc(sizeof(Queue_Item));
     new_queue_item->contents = item;
     new_queue_item->next = NULL;
     // if the queue is currently empty we set both first and last
     // item, rather than  last_item->next
-    if (queue_is_empty(q)==0) {
+    if (queue_is_empty(q) == 0) {
         q->first_item = new_queue_item;
         q->last_item = new_queue_item;
     } else {
@@ -34,10 +31,11 @@ void queue_push_tail(Queue* q, void* item)
     q->length++;
 }
 
-long queue_get_length(Queue* q) { return q->length; }
+long queue_get_length(Queue* q) {
+    return q->length;
+}
 
-void* queue_pop_head(Queue* q)
-{
+void* queue_pop_head(Queue* q) {
     Queue_Item* first_item = q->first_item;
     if (first_item == NULL) {
         return NULL;
@@ -55,8 +53,7 @@ void* queue_pop_head(Queue* q)
 
 /// Currently assumes that we want to free the contents
 /// of everything in the queue as well
-void queue_free(Queue* q)
-{
+void queue_free(Queue* q) {
     Queue_Item* current_item = q->first_item;
     // free the queue contents
     while (current_item != NULL) {

@@ -1,10 +1,10 @@
 #ifndef TREE_H_
 #define TREE_H_
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include "queue.h"
 
@@ -14,25 +14,24 @@
 #define TRUE 1
 #define FALSE 0
 
-typedef struct Node{
-  long parent;
-  long children[2];
-  long time;
+typedef struct Node {
+    long parent;
+    long children[2];
+    long time;
 } Node;
 
-typedef struct Tree{
-  Node* node_array;
-  long num_leaves;
-  long root_time;
-  long sos_d;
+typedef struct Tree {
+    Node* node_array;
+    long num_leaves;
+    long root_time;
+    long sos_d;
 } Tree;
 
-typedef struct Tree_Array{
-  Tree* trees;
-  long num_trees;
-  long max_root_time;
+typedef struct Tree_Array {
+    Tree* trees;
+    long num_trees;
+    long max_root_time;
 } Tree_Array;
-
 
 Node empty_node();
 
@@ -50,9 +49,11 @@ void print_tree(Tree* tree);
 int same_topology(Tree* tree1, Tree* tree2);
 int same_tree(Tree* tree1, Tree* tree2);
 
-long mrca(Tree * input_tree, long node1, long node2);
+long mrca(Tree* input_tree, long node1, long node2);
 long* mrca_array(Tree* tree1, Tree* tree2);
-long mrca_differences(Tree* current_tree, Tree* dest_tree, int include_leaf_parents);
+long mrca_differences(Tree* current_tree,
+                      Tree* dest_tree,
+                      int include_leaf_parents);
 
 long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2);
 long symmetric_cluster_diff(Tree* tree1, Tree* tree2, long k);

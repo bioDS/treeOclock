@@ -5,8 +5,11 @@ from ctypes import *
 
 lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/tree.so')
 
+
 class NODE(Structure):
-    _fields_ = [('parent', c_long), ('children', c_long * 2), ('time', c_long)] # The order of arguments here matters! Needs to be the same as in C code!
+    # The order of arguments here matters! Needs to be the same as in C code!
+    _fields_ = [('parent', c_long), ('children', c_long * 2), ('time', c_long)]
+
     def __init_(self, parent, children, time):
         self.parent = parent
         self.children = children
@@ -14,7 +17,9 @@ class NODE(Structure):
 
 
 class TREE(Structure):
-    _fields_ =  [('node_array', POINTER(NODE)), ('num_leaves', c_long), ('root_time', c_long), ('sos_d', c_long)] # Everything from struct definition in C
+    _fields_ = [('node_array', POINTER(NODE)), ('num_leaves', c_long), ('root_time',
+                                                                        c_long), ('sos_d', c_long)]  # Everything from struct definition in C
+
     def __init_(self, node_array, num_leaves, root_time, sos_d):
         self.node_array = node_array
         self.num_leaves = num_leaves
@@ -23,7 +28,9 @@ class TREE(Structure):
 
 
 class TREE_ARRAY(Structure):
-    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long), ('max_root_time', c_long)]
+    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long),
+                ('max_root_time', c_long)]
+
     def __init_(self, trees, num_trees, max_root_time):
         self.trees = trees
         self.num_trees = num_trees
