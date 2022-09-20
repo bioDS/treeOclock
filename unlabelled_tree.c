@@ -13,7 +13,7 @@ void copy_unlabelled_tree(Tree* tree, Tree* to_copy_tree) {
 // create new copy of tree
 Unlabelled_Tree* new_unlabelled_tree_copy(Tree* tree) {
     long num_leaves = tree->num_leaves;
-    Unlabelled_Tree* tree_copy = empty_tree(num_leaves);
+    Unlabelled_Tree* tree_copy = get_empty_tree(num_leaves);
     copy_unlabelled_tree(tree_copy, tree);
     return tree_copy;
 }

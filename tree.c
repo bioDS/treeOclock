@@ -3,7 +3,7 @@
 #include "tree.h"
 
 // create empty node
-Node empty_node() {
+Node get_empty_node() {
     Node new_node;
     new_node.parent = -1;
     new_node.children[0] = -1;
@@ -13,13 +13,13 @@ Node empty_node() {
 }
 
 // create empty tree on num_leaves leaves
-Tree* empty_tree(long num_leaves) {
+Tree* get_empty_tree(long num_leaves) {
     long num_nodes = 2 * num_leaves - 1;
     Tree* new_tree = malloc(sizeof(Tree));
     new_tree->node_array = calloc(num_nodes, sizeof(Node));
     new_tree->num_leaves = num_leaves;
     for (long i = 0; i < num_nodes; i++) {
-        new_tree->node_array[i] = empty_node();
+        new_tree->node_array[i] = get_empty_node();
     }
     return new_tree;
 }
@@ -30,23 +30,23 @@ void free_tree(Tree* tree) {
 }
 
 // copy to_copy_tree into tree
-void copy_tree(Tree* tree, Tree* to_copy_tree) {
-    long num_nodes = 2 * tree->num_leaves - 1;
+void copy_tree(Tree* dest_tree, Tree* source_tree) {
+    long num_nodes = 2 * source_tree->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++) {
-        tree->node_array[i] = to_copy_tree->node_array[i];
+        dest_tree->node_array[i] = source_tree->node_array[i];
     }
 }
 
 // create new copy of tree
 Tree* new_tree_copy(Tree* tree) {
     long num_leaves = tree->num_leaves;
-    Tree* tree_copy = empty_tree(num_leaves);
+    Tree* tree_copy = get_empty_tree(num_leaves);
     copy_tree(tree_copy, tree);
     return tree_copy;
 }
 
 // create an empty Tree_Array
-Tree_Array empty_tree_array(long num_trees, long num_leaves) {
+Tree_Array get_empty_tree_array(long num_trees, long num_leaves) {
     Tree_Array tree_array;
     tree_array.num_trees = num_trees;
     tree_array.trees = calloc(num_trees, sizeof(Tree));

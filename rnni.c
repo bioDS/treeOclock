@@ -150,7 +150,7 @@ Tree_Array rnni_neighbourhood(Tree* tree) {
     long num_nodes = 2 * num_leaves - 1;
     long max_nh_size = 2 * (num_leaves - 1);
 
-    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = get_empty_tree_array(max_nh_size, num_leaves);
     long index = 0;  // index to the currently last element in neighbour_array
 
     // Deep copy input tree to get neighbouring trees
@@ -191,7 +191,7 @@ Tree_Array rank_neighbourhood(Tree* tree) {
     long num_leaves = tree->num_leaves;
     long max_nh_size = num_leaves - 1;
 
-    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = get_empty_tree_array(max_nh_size, num_leaves);
     Tree* neighbour = new_tree_copy(tree);
 
     // index to the currently last element in neighbour_array
@@ -378,7 +378,7 @@ Tree_Array return_findpath(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
     Path fp = findpath(start_tree, dest_tree);
 
-    Tree_Array findpath_array = empty_tree_array(fp.length + 1, num_leaves);
+    Tree_Array findpath_array = get_empty_tree_array(fp.length + 1, num_leaves);
     Tree* next_findpath_tree;
 
     Tree* current_tree;

@@ -82,7 +82,7 @@ Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal) {
     long max_nh_size = 2 * num_leaves * (num_leaves - 1);
 
     // Initialise array of neighbours
-    Tree_Array neighbour_array = empty_tree_array(max_nh_size, num_leaves);
+    Tree_Array neighbour_array = get_empty_tree_array(max_nh_size, num_leaves);
     long index = 0;  // index to the currently last element in neighbour_array
 
     // Deep copy input tree to get neighbouring trees
