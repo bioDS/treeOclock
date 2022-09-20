@@ -24,12 +24,13 @@ Tree* get_empty_tree(long num_leaves) {
     return new_tree;
 }
 
+// free memory
 void free_tree(Tree* tree) {
     free(tree->node_array);
     free(tree);
 }
 
-// copy to_copy_tree into tree
+// copy source_tree to dest_tree
 void copy_tree(Tree* dest_tree, Tree* source_tree) {
     long num_nodes = 2 * source_tree->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++) {
@@ -58,6 +59,7 @@ Tree_Array get_empty_tree_array(long num_trees, long num_leaves) {
     return tree_array;
 }
 
+// free memory
 void free_tree_array(Tree_Array tree_array) {
     for (long i = 0; i < tree_array.num_trees; i++) {
         free(tree_array.trees[i].node_array);
@@ -65,19 +67,21 @@ void free_tree_array(Tree_Array tree_array) {
     free(tree_array.trees);
 }
 
-// print parents and children for each node in tree
+// print parents, children, and time for each node in tree
 void print_tree(Tree* tree) {
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
-    for (long rank = 0; rank < num_nodes; rank++) {
-        printf("Node at rank %ld: parent %ld, children %ld, %ld\n", rank,
-               tree->node_array[rank].parent,
-               tree->node_array[rank].children[0],
-               tree->node_array[rank].children[1]);
+    for (long pos = 0; pos < num_nodes; pos++) {
+        printf(
+            "Node at position %ld: parent %ld, children %ld, %ld, time %ld\n",
+            pos, tree->node_array[pos].parent,
+            tree->node_array[pos].children[0],
+            tree->node_array[pos].children[1], tree->node_array[pos].time);
     }
 }
 
-// Check whether two trees have the same (ranked) tree topology
+// Check whether two trees have the same (ranked) tree topology (unlabelled
+// ranked tree)
 int same_topology(Tree* tree1, Tree* tree2) {
     long num_leaves = tree1->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
@@ -89,7 +93,7 @@ int same_topology(Tree* tree1, Tree* tree2) {
     return TRUE;
 }
 
-// Check whether two trees are identical
+// Check whether two trees are isomorphic
 int same_tree(Tree* tree1, Tree* tree2) {
     long num_nodes = 2 * tree1->num_leaves - 1;
     for (long i = 0; i < num_nodes; i++) {
@@ -100,10 +104,13 @@ int same_tree(Tree* tree1, Tree* tree2) {
     return TRUE;
 }
 
-// find rank of mrca of nodes with positions node1 and node2 in tree
+// find rank (position in node_array) of most recent common ancestor of nodes
+// node1 and node2 in tree
 long mrca(Tree* input_tree, long node1, long node2) {
     long rank1 = node1;
     long rank2 = node2;
+    // loop through ancestors (bottom-up) of the two nodes until ancestor of
+    // both is found
     while (rank1 != rank2) {
         if (rank1 < rank2) {
             rank1 = input_tree->node_array[rank1].parent;
