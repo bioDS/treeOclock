@@ -7,7 +7,6 @@ lib = CDLL(f'{os.path.dirname(os.path.realpath(__file__))}/tree.so')
 
 
 class NODE(Structure):
-    # The order of arguments here matters! Needs to be the same as in C code!
     _fields_ = [('parent', c_long), ('children', c_long * 2), ('time', c_long)]
 
     def __init_(self, parent, children, time):
@@ -17,24 +16,19 @@ class NODE(Structure):
 
 
 class TREE(Structure):
-    _fields_ = [('node_array', POINTER(NODE)), ('num_leaves', c_long), ('root_time',
-                                                                        c_long), ('sos_d', c_long)]  # Everything from struct definition in C
+    _fields_ = [('node_array', POINTER(NODE)), ('num_leaves', c_long)]
 
-    def __init_(self, node_array, num_leaves, root_time, sos_d):
+    def __init_(self, node_array, num_leaves):
         self.node_array = node_array
         self.num_leaves = num_leaves
-        self.root_time = root_time
-        self.sos_d = sos_d
 
 
 class TREE_ARRAY(Structure):
-    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long),
-                ('max_root_time', c_long)]
+    _fields_ = [('trees', POINTER(TREE)), ('num_trees', c_long)]
 
-    def __init_(self, trees, num_trees, max_root_time):
+    def __init_(self, trees, num_trees):
         self.trees = trees
         self.num_trees = num_trees
-        self.max_root_time = max_root_time
 
 
 unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood

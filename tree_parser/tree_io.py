@@ -167,8 +167,7 @@ def read_newick(s, factor=0):
 
     # Create and return output tree:
     num_leaves = len(leaves)
-    output_tree = TREE(node_array, num_leaves,
-                       node_array[num_nodes - 1].time, -1)
+    output_tree = TREE(node_array, num_leaves)
     return output_tree
 
 
@@ -211,7 +210,7 @@ def read_nexus(file_handle, factor=0):
                     return (1)
                 index += 1
 
-    return TREE_ARRAY(trees, num_trees, max_root_time)
+    return TREE_ARRAY(trees, num_trees)
 
 
 def read_from_cluster(s):
