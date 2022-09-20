@@ -2,16 +2,19 @@
 
 #include "unlabelled_rnni.h"
 
+// NNI move on unlabelled tree on edge [rank, rank+1], moving the child of rank
+// with index child_moves_up up, i.e. that node has rank+1 as parent after move
 int unlabelled_nni_move(Unlabelled_Tree* tree, long rank, int child_moves_up) {
     return nni_move(tree, rank, child_moves_up);
 }
 
+// rank move on interval [rank, rank+1] of tree
 int unlabelled_rank_move(Unlabelled_Tree* tree, long rank) {
     return rank_move(tree, rank);
 }
 
-// Compute Unlabelled_Tree_Array of all unlabelled RNNI neighbours
-// Note that some trees might appear multiple times in the output array!
+// Compute unlabelled RNNI neighbours
+// Note that some trees might appear multiple times in the output array
 Unlabelled_Tree_Array unlabelled_rnni_neighbourhood(Unlabelled_Tree* tree) {
     long num_leaves = tree->num_leaves;
     long max_nh_size = 2 * (num_leaves - 1);
@@ -25,6 +28,7 @@ Unlabelled_Tree_Array unlabelled_rnni_neighbourhood(Unlabelled_Tree* tree) {
     Tree* next_neighbour_array;
     next_neighbour_array = &neighbour_array.trees[index];
 
+    // iterate through all intervals in trees to make all possible moves
     for (long r = 0; r < num_leaves - 2; r++) {
         // Check if we can do rank move:
         if (tree->node_array[r].parent != r + 1) {
