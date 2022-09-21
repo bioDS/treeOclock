@@ -7,20 +7,33 @@ An R package for computing the RNNI distance can be found [here](https://github.
 The implementation here is written in C, wrapped in Python.
 
 
-## Compilation
+## Compile
 
-`make`
-
-
-## Reading Trees
-
-Ranked trees can be read from from nexus files or as newick strings with `read_nexus(filename)` or `read_newick(newick_string)`.
+Download repository and compile:
 
 
-## Writing Trees
+    git clone https://github.com/bioDS/treeOclock.git
+    cd treeOclock
+    make
 
-There is currently no function to return trees in newick format.
-We can however return them as strings in cluster representations (see Collienne and Gavryushkin, 2021) using the function `tree_to_cluster_string`.
+
+## Functions executable from Python
+
+### Reading Trees
+
+`read_nexus(filename)`
+-- Returns `Tree_Array` containing all trees from nexus file
+
+`read_newick(newick_string)`
+-- Returns `Tree` given by newick_string
+
+
+### Writing Trees
+
+There is currently no function to return trees in newick format
+
+`tree_to_cluster_string(tree)`
+-- Returns input tree (in Tree format) as string in cluster representation
 
 
 ## Computing RNNI distances or paths
