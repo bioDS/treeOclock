@@ -20,7 +20,7 @@ Unlabelled_Tree_Array unlabelled_rnni_neighbourhood(Unlabelled_Tree* tree) {
     long max_nh_size = 2 * (num_leaves - 1);
 
     Unlabelled_Tree_Array neighbour_array =
-        empty_unlabelled_tree_array(max_nh_size, num_leaves);
+        get_empty_unlabelled_tree_array(max_nh_size, num_leaves);
     long index = 0;  // index to the currently last element in neighbour_array
 
     // Deep copy input tree to get neighbouring trees
