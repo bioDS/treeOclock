@@ -182,7 +182,7 @@ Tree_Array rank_neighbourhood(Tree* tree) {
 }
 
 // Perform a random RNNI move (at uniform) on tree
-int uniform_neighbour(Tree* tree) {
+void uniform_neighbour(Tree* tree) {
     long num_leaves = tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long num_moves = 0;
@@ -224,7 +224,6 @@ int uniform_neighbour(Tree* tree) {
     }
     // free move_array
     free(move_array);
-    return EXIT_SUCCESS;
 }
 
 // decrease the mrca of node1 and node2 in tree by a (unique) RNNI move

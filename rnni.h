@@ -32,7 +32,7 @@ Tree_Array rnni_neighbourhood(Tree* tree);
 // returns all trees resulting from rank moves on tree
 Tree_Array rank_neighbourhood(Tree* tree);
 // returns one neighbour drawn uniformly from one-neighbourhood
-int uniform_neighbour(Tree* input_tree);
+void uniform_neighbour(Tree* input_tree);
 
 // performs (unique) RNNI move on tree that decreases the rank of the most
 // recent common ancestor of node1 and node2 by one
