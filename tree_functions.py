@@ -57,10 +57,6 @@ spr_move = lib.spr_move
 spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int]
 spr_move.restype = c_int
 
-unlabelled_spr_move = lib.unlabelled_spr_move
-unlabelled_spr_move.argtypes = [POINTER(TREE), c_long, c_long, c_int, c_int]
-unlabelled_spr_move.restype = c_int
-
 same_topology = lib.same_topology
 same_topology.argtypes = [POINTER(TREE), POINTER(TREE)]
 same_topology.restype = c_int

@@ -37,44 +37,6 @@ int spr_move(Tree* tree, long r, long new_sibling, int child_moving) {
     return EXIT_SUCCESS;
 }
 
-// unlabelled ranked SPR move pruning the child with index child_moving of node
-// at position r of the node_array re-attaching as children[new_child] of tree
-// at position new_parent of node_array
-int unlabelled_spr_move(Tree* tree,
-                        long r,
-                        long new_parent,
-                        int child_moving,
-                        int new_child_index) {
-    if (r > new_parent ||
-        tree->node_array[new_parent].children[new_child_index] > r) {
-        // HSPR move only possible if edge for re-attachment covers rank r
-        printf("Error. No unlabelled SPR move possible\n");
-        return EXIT_FAILURE;
-    }
-
-    // update part of tree where we cut subtree
-    long old_parent = tree->node_array[r].parent;
-    long old_sibling = tree->node_array[r].children[1 - child_moving];
-    for (int i = 0; i <= 1; i++) {  // find out which child of old_parent r is
-        if (tree->node_array[old_parent].children[i] == r) {
-            if (old_sibling != -1) {
-                tree->node_array[old_sibling].parent = old_parent;
-            }
-            tree->node_array[old_parent].children[i] = old_sibling;
-        }
-    }
-
-    // update part of tree where subtree gets re-attached
-    long new_child = tree->node_array[new_parent].children[new_child_index];
-    tree->node_array[new_parent].children[new_child_index] = r;
-    tree->node_array[r].children[1 - child_moving] = new_child;
-    tree->node_array[r].parent = new_parent;
-    if (new_child != -1) {
-        tree->node_array[new_child].parent = r;
-    }
-    return EXIT_SUCCESS;
-}
-
 // Compute Tree_Array of all spr_neighbours
 // If horizontal = FALSE, returns RSPR neighbourhood (including rank moves),
 // otherwise HSPR neighbouhood (without rank moves)
