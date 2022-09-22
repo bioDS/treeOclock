@@ -3,6 +3,17 @@
 
 #include "tree.h"
 
+/* Save sequence of RNNI moves in matrix:
+Each row moves[i] is one move
+moves[i][0]:
+    lower rank of interval on which move is performed
+moves[i][1]:
+    0 -> rank move
+    1 -> nni move where children[0] moves up (becomes child of node at rank
+    path[i][0]+1)
+    2 -> nni move where children[1] moves up (becomes child of node at
+    rank path[i][0]+1)
+*/
 typedef struct Path {
     long** moves;
     long length;
