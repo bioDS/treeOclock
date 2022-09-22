@@ -5,7 +5,7 @@
 
 // Random walk of length k starting at `tree` choosing neighbour uniformly in
 // every step
-long random_walk(Tree* tree, long k);
+long random_walk_distance(Tree* tree, long k);
 // updates every tree in tree_array to the tree after one iteration of findpath:
 // decreases the mrca of node1 and node2 in every tree until it has rank r
 int first_iteration_fp(Tree_Array* tree_array, long node1, long node2, long r);

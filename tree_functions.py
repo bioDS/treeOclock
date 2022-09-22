@@ -65,9 +65,9 @@ mrca_differences = lib.mrca_differences
 mrca_differences.argtypes = [POINTER(TREE), POINTER(TREE)]
 mrca_differences.restype = c_long
 
-spr_neighbourhood = lib.spr_neighbourhood
-spr_neighbourhood.argtypes = [POINTER(TREE)]
-spr_neighbourhood.restype = TREE_ARRAY
+rspr_neighbourhood = lib.rspr_neighbourhood
+rspr_neighbourhood.argtypes = [POINTER(TREE)]
+rspr_neighbourhood.restype = TREE_ARRAY
 
 all_spr_neighbourhood = lib.all_spr_neighbourhood
 all_spr_neighbourhood.argtypes = [POINTER(TREE), c_int]
@@ -93,9 +93,9 @@ findpath_path = lib.findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_path.restype = TREE_ARRAY
 
-random_walk = lib.random_walk
-random_walk.argtypes = [POINTER(TREE), c_long]
-random_walk.restype = c_long
+random_walk_distance = lib.random_walk_distance
+random_walk_distance.argtypes = [POINTER(TREE), c_long]
+random_walk_distance.restype = c_long
 
 mrca_array = lib.mrca_array
 mrca_array.argtypes = [POINTER(TREE), POINTER(TREE)]

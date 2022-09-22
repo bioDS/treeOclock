@@ -4,7 +4,7 @@
 
 // Perform a series of k random RNNI moves to receive a random walk in RNNI,
 // starting at `tree`
-long random_walk(Tree* tree, long k) {
+long random_walk_distance(Tree* tree, long k) {
     Tree* current_tree = new_tree_copy(tree);
     for (long i = 0; i < k; i++) {
         uniform_neighbour(current_tree);

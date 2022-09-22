@@ -11,7 +11,7 @@ int spr_move(Tree* tree, long r, long new_sibling, int child_moving);
 // Return all spr neighbours in array; if horizontal = FALSE (0), then give RSPR
 // neighbourhood (including rank moves), otherwise HSPR (only SPR moves)
 Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal);
-Tree_Array spr_neighbourhood(Tree* tree);
+Tree_Array rspr_neighbourhood(Tree* tree);
 Tree_Array hspr_neighbourhood(Tree* tree);
 
 #endif

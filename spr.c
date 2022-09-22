@@ -84,7 +84,7 @@ Tree_Array all_spr_neighbourhood(Tree* tree, int horizontal) {
     return (neighbour_array);
 }
 
-Tree_Array spr_neighbourhood(Tree* tree) {
+Tree_Array rspr_neighbourhood(Tree* tree) {
     return all_spr_neighbourhood(tree, FALSE);
 }
 
