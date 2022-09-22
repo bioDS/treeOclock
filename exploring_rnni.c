@@ -3,7 +3,7 @@
 #include "exploring_rnni.h"
 
 // Perform a series of k random RNNI moves to receive a random walk in RNNI,
-// starting at input tree
+// starting at `tree`
 long random_walk(Tree* tree, long k) {
     Tree* current_tree = new_tree_copy(tree);
     for (long i = 0; i < k; i++) {
@@ -14,9 +14,9 @@ long random_walk(Tree* tree, long k) {
     return (distance);
 }
 
-// perform one iteration of FP on every tree in tree_array, such that resulting
-// tree has mrca of i and j at position r Note that this may change every tree
-// in treearray
+// perform one iteration of FindPath on every tree in tree_array, such that
+// resulting tree has mrca of node1 and node2 at position r Note that this may
+// change every tree in tree_array
 int first_iteration_fp(Tree_Array* tree_array, long node1, long node2, long r) {
     for (long i = 0; i < tree_array->num_trees; i++) {
         while (mrca(&tree_array->trees[i], node1, node2) > r) {
@@ -26,8 +26,8 @@ int first_iteration_fp(Tree_Array* tree_array, long node1, long node2, long r) {
     return 0;
 }
 
+// compute sum of squared distances for all tree in tree_array to focal_tree
 long sos(Tree_Array* tree_array, Tree* focal_tree) {
-    // compute sum of squared distances for all tree in tree_array to focal_tree
     long sos = 0;
     for (long i = 0; i < tree_array->num_trees; i++) {
         sos += rnni_distance(&tree_array->trees[i], focal_tree);
@@ -35,7 +35,7 @@ long sos(Tree_Array* tree_array, Tree* focal_tree) {
     return sos;
 }
 
-// return array with rank(mrca_{tree1}(C_i)) at position i where C_i is the
+// returns array with rank(mrca_{tree1}(C_i)) at position i where C_i is the
 // cluster induced by node of rank i in tree2
 long* mrca_array(Tree* tree1, Tree* tree2) {
     long num_leaves = tree1->num_leaves;
@@ -66,7 +66,7 @@ long* mrca_array(Tree* tree1, Tree* tree2) {
 }
 
 // Compute differences of ranks of mrcas of all clusters of tree2 btw tree1 and
-// tree2 Also add ranks of parents of leaves if include_leaf_parents == 0
+// tree2 Also add ranks of parents of leaves if include_leaf_parents == 1
 long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents) {
     long sum = 0;
     long num_leaves = tree2->num_leaves;
@@ -85,8 +85,8 @@ long mrca_differences(Tree* tree1, Tree* tree2, int include_leaf_parents) {
     return sum;
 }
 
-// return matrix cluster*leaves -- 0 if leaf is not in cluster, 1 if it is in
-// cluster
+// return binary matrix with rows representing clusters, columns leaves:
+// 0 if leaf is not in cluster, 1 if it is in cluster
 long** get_clusters(Tree* tree) {
     long num_leaves = tree->num_leaves;
     long** clusters = calloc(num_leaves - 1, sizeof(long*));
@@ -109,8 +109,8 @@ long** get_clusters(Tree* tree) {
     return clusters;
 }
 
-// Computes sum of symmetric differences of clusters of tree1 and tree2 for all
-// ranks i=1,..,n-1
+// Computes sum of sizes of symmetric differences of clusters of tree1 and tree2
+// for all ranks i=1,..,n-1
 long sum_symmetric_cluster_diff(Tree* tree1, Tree* tree2) {
     long num_leaves = tree1->num_leaves;
 
