@@ -97,7 +97,7 @@ rnni_distance = lib.rnni_distance
 rnni_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
 rnni_distance.restype = c_long
 
-findpath_path = lib.return_findpath
+findpath_path = lib.findpath
 findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
 findpath_path.restype = TREE_ARRAY
 

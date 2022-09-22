@@ -268,7 +268,7 @@ int uniform_neighbour(Tree* tree) {
 // 1 -> nni where children[0] moves up (becomes child of node at rank
 // path[i][0]+1) 2 -> nni where children[1] moves up (becomes child of node at
 // rank path[i][0]+1)
-Path findpath(Tree* start_tree, Tree* dest_tree) {
+Path findpath_moves(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
     long max_dist = ((num_leaves - 1) * (num_leaves - 2)) / 2;
@@ -374,9 +374,9 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree) {
 
 // returns the FINDPATH path between two given given trees as Tree_Array
 // (i) runs findpath and (ii) translates path matrix to actual trees on path
-Tree_Array return_findpath(Tree* start_tree, Tree* dest_tree) {
+Tree_Array findpath(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
-    Path fp = findpath(start_tree, dest_tree);
+    Path fp = findpath_moves(start_tree, dest_tree);
 
     Tree_Array findpath_array = get_empty_tree_array(fp.length + 1, num_leaves);
     Tree* next_findpath_tree;

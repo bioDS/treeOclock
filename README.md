@@ -27,7 +27,7 @@ Function | Return value
 `tree_to_cluster_string(tree)` | string of cluster representation of input `Tree`
 **RNNI**
 `rnni_distance(tree1, tree2)` | RNNI distance between `Tree`s tree1 and tree2
-`findpath_path(tree1, tree2)` | `Tree_Array` containing all trees on shortest path from `Tree` tree1 to tree2 computed by FindPath
+`findpath(tree1, tree2)` | `Tree_Array` containing all trees on shortest path from `Tree` tree1 to tree2 computed by FindPath
 
 ### Example
 
