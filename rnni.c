@@ -309,6 +309,8 @@ Path findpath_moves(Tree* start_tree, Tree* dest_tree) {
 }
 
 // FINDPATH without saving the path -- returns only the distance
+// This implementation works for discrete time trees, therefore does some length
+// moves, too
 long rnni_distance(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
