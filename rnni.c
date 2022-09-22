@@ -76,39 +76,6 @@ int rank_move(Tree* tree, long r) {
     return EXIT_SUCCESS;
 }
 
-// decrease the mrca of node1 and node2 in tree by a (unique) RNNI move
-// returns 0 if rank move was done
-// returns 1 if NNI move moving children[0] up
-// returns 2 if NNI move moving children[1] up
-int decrease_mrca(Tree* tree, long node1, long node2) {
-    // return value:
-    int move_type;
-    long current_mrca = mrca(tree, node1, node2);
-    // deep copy tree
-    Tree* neighbour = new_tree_copy(tree);
-    if (neighbour->node_array[current_mrca - 1].parent == current_mrca) {
-        // we try both possible NNI move and see which one decreases the rank of
-        // the mrca
-        move_type = 1;
-        nni_move(neighbour, current_mrca - 1, 0);
-        if (mrca(neighbour, node1, node2) >= current_mrca) {
-            // we did not decrease the rank of the mrca by this nni move, so we
-            // need to do the other one but first we need to reset neighbour to
-            // tree:
-            copy_tree(neighbour, tree);
-            nni_move(neighbour, current_mrca - 1, 1);
-            move_type = 2;
-        }
-    } else {  // otherwise, we make a rank move
-        rank_move(neighbour, current_mrca - 1);
-        move_type = 0;
-    }
-    // now update tree to become neighbour
-    copy_tree(tree, neighbour);
-    free_tree(neighbour);
-    return move_type;
-}
-
 // Use length moves to move up internal nodes between lowest_moving_node
 // (including) and k (excluding) in tree.node_array in the end there are no
 // nodes with rank less than k in the tree these are length moves that move
@@ -260,6 +227,39 @@ int uniform_neighbour(Tree* tree) {
     return EXIT_SUCCESS;
 }
 
+// decrease the mrca of node1 and node2 in tree by a (unique) RNNI move
+// returns 0 if rank move was done
+// returns 1 if NNI move moving children[0] up
+// returns 2 if NNI move moving children[1] up
+int decrease_mrca(Tree* tree, long node1, long node2) {
+    // return value:
+    int move_type;
+    long current_mrca = mrca(tree, node1, node2);
+    // deep copy tree
+    Tree* neighbour = new_tree_copy(tree);
+    if (neighbour->node_array[current_mrca - 1].parent == current_mrca) {
+        // we try both possible NNI move and see which one decreases the rank of
+        // the mrca
+        move_type = 1;
+        nni_move(neighbour, current_mrca - 1, 0);
+        if (mrca(neighbour, node1, node2) >= current_mrca) {
+            // we did not decrease the rank of the mrca by this nni move, so we
+            // need to do the other one but first we need to reset neighbour to
+            // tree:
+            copy_tree(neighbour, tree);
+            nni_move(neighbour, current_mrca - 1, 1);
+            move_type = 2;
+        }
+    } else {  // otherwise, we make a rank move
+        rank_move(neighbour, current_mrca - 1);
+        move_type = 0;
+    }
+    // now update tree to become neighbour
+    copy_tree(tree, neighbour);
+    free_tree(neighbour);
+    return move_type;
+}
+
 // FINDPATH. returns a shortest RNNI path in matrix representation:
 // each row of path is move
 // path[i][0]: rank of lower node bounding the interval of move i
@@ -293,7 +293,7 @@ Path findpath_moves(Tree* start_tree, Tree* dest_tree) {
     for (long i = num_leaves; i < num_nodes; i++) {
         current_mrca = mrca(current_tree, dest_tree->node_array[i].children[0],
                             dest_tree->node_array[i].children[1]);
-        // move current_mrca down until it becomes i
+        // decreases current_mrca until it becomes i
         while (current_mrca != i) {
             path.moves[path_index][0] = current_mrca - 1;
             path.moves[path_index][1] = decrease_mrca(
