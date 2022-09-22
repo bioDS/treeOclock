@@ -1,3 +1,5 @@
+// author: Kieran Elmes
+
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
