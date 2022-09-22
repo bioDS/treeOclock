@@ -13,12 +13,11 @@ sys.path.append('..')
 
 
 def get_children_edges_leaves_from_newick(tree_str):
-    # Iterate through tree_str to get
+    # Iterate once through tree_str to get
     # (i) dict 'children' of children of each node (intX for node of rank X as keys, children as values)
     # (ii) dict 'edge' of length of edge above every node
     # (iii) list 'leaves' of leaf names
 
-    # we return:
     children = dict()  # contains children for all internal nodes (as sets)
     edges = dict()  # length of edges above every node (internal and leaf)
     leaves = list()  # list of leaf names
@@ -37,8 +36,9 @@ def get_children_edges_leaves_from_newick(tree_str):
     int_node_index = 1  # index of next internal node (X for intX)
     prev_node = ''  # name of the previously considered node
 
-    # We assume that first character is an opening bracket corresponding to the root
+    # Iterate through all position in newick_string
     while i < len(tree_str) - 1:
+        # new internal node
         if tree_str[i] == '(':
             new_node = 'int' + str(int_node_index)
             children[new_node] = set()  # Empty set for children
@@ -48,12 +48,13 @@ def get_children_edges_leaves_from_newick(tree_str):
             # Parent of new_node is the node on top of the next_parent stack
             next_parent.append(new_node)
             i += 1
+        # reached end of internal node
         elif tree_str[i] == ')':
             prev_node = next_parent.pop(len(next_parent) - 1)
             i += 1
         elif tree_str[i] == ',':  # Commas can be ignored. We use parentheses to identify nodes
             i += 1
-        # The next element after this is the edge length of the last considered node (which can be internal node or a leaf)
+        # The next element after this is the edge length of the node considered last (which can be internal node or a leaf)
         elif tree_str[i] == ':':
             # Read the numbers following the colon, this is the edge length of the edge leading to prev_node
             i += 1
@@ -62,7 +63,7 @@ def get_children_edges_leaves_from_newick(tree_str):
                 edge_length = edge_length + tree_str[i]
                 i += 1
             edges[prev_node] = float(edge_length)
-        elif tree_str[i] == ';':  # We reached the end of the string
+        elif tree_str[i] == ';':  # End of newick string
             break
         elif tree_str[i] != '[':
             # We are at a leaf label
@@ -97,25 +98,27 @@ def tree_times(edges, children):
     return times
 
 
-# alternative for reading newick string iteratively by once looping through string s instead of recursion.
+# read newick string, return TREE ('Tree', see tree.h)
+# 'factor': factor by which the times of internal nodes are multiplied to receive integer-valued times.
+# Default factor: 0 -- ranked tree
+# How to choose factor>0 for Discrete Coalescent Trees (DCTs) is not obvious -- WIP
 def read_newick(s, factor=0):
 
-    factor = float(factor)  # factor by which the times of internal nodes are multiplied to receive integer-valued times. Default: 0 -- ranked tree (we don't multiply be zero for ranked trees, instead we take the order of internal nodes if factor == 0)
+    factor = float(factor)
 
+    # Get all important information:
+    # (i) dict 'children' of children of each node (intX for node of rank X as keys, children as values)
+    # (ii) dict 'edge' of length of edge above every node
+    # (iii) list 'leaves' of leaf names
     (children, edges, leaves) = get_children_edges_leaves_from_newick(s)
-
+    # dict containing times for all internal nodes
     times = tree_times(edges, children)
 
     # Create empty node_array for output TREE
     num_nodes = 2*len(children)+1
     node_array = (NODE * num_nodes)()
-
-    empty_children = (c_long * 2)()
-    empty_children[0] = -1
-    empty_children[1] = -1
-
     for i in range(0, num_nodes):
-        node_array[i] = NODE(-1, empty_children, 0)
+        node_array[i] = get_empty_node()
 
     leaves.sort()  # Sort leaves alphabetical to save them in node_array
 
@@ -127,8 +130,8 @@ def read_newick(s, factor=0):
         return 1
 
     prev_node_time = -1
+    # We fill the node_array from top (root) to bottom
     for i in range(num_nodes-1, len(leaves)-1, -1):
-        # We fill the node list from top to bottom
         current_node = max(times, key=times.get)
 
         # Get the integer-valued node time
@@ -143,18 +146,19 @@ def read_newick(s, factor=0):
             # This is prev_node_time - 1
             node_time = prev_node_time - 1
             prev_node_time = node_time
-        if node_time == 0:
+        if node_time == 0:  # we cannot pick a lower time -> factor is to small to get DCT tree
             print('The factor for discretising trees needs to be bigger')
             return 1
-        # Set node time in C data structure
+        # Set node time in node_array
         node_array[i].time = node_time
 
-        # Find children and add data to C data structure
+        # Find children and add them to node_array
         child_1 = children[current_node].pop()
         child_2 = children[current_node].pop()
-        # Distinguish whether child is leaf or not to get correct index in node_array
+        # Add children-parent relationship to node_array for both children (0 and 1)
         for k in [0, 1]:
             child = locals()["child_" + str(k+1)]
+            # Distinguish whether child is leaf or not to get correct index in node_array
             if 'int' in child:
                 child_rank = ranking.index(times[child])
                 node_array[i].children[k] = child_rank + len(leaves)
@@ -162,7 +166,7 @@ def read_newick(s, factor=0):
             else:
                 node_array[i].children[k] = leaves.index(child)
                 node_array[leaves.index(child)].parent = i
-        # We keep the node time for the next iteration to make sure no two nodes get the same time
+        # keep the node time for the next iteration to make sure no two nodes get the same time
         prev_node_time = node_time
 
     # Create and return output tree:
@@ -185,7 +189,6 @@ def read_nexus(file_handle, factor=0):
 
     # Save trees in an array to give to output TREE_ARRAY
     trees = (TREE * num_trees)()
-    max_root_time = 0  # Maximum root time of the trees in the given file
 
     # If leaf label dict is needed, see the dtt-package or Summarizing-ran... repository!
 
@@ -201,9 +204,6 @@ def read_nexus(file_handle, factor=0):
                 t = read_newick(re.sub(brackets, "", tree_string), factor)
                 if t != 1:
                     trees[index] = t
-                    # update root time (if necessary)
-                    max_root_time = max(
-                        max_root_time, t.tree[2*t.num_leaves-2].time)
                 else:
                     print(
                         "Couldn't read all trees in file, choose higher value for 'factor'.")
