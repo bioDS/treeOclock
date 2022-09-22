@@ -48,25 +48,28 @@ for i in range(0, path.num_trees):
 
 ## Data Structures
 
+We use our own data structure in C code.
+The following is a summary of all structures defined in *tree.h* and *rnni.h*.
+
 Struct | Members
 --- | ---
-**struct Node** (tree.h)
+**struct Node**
 long parent | parent (-1 if node root)
 long children[2] | two children (-1 if node leaf)
 long time | time of this node (=rank for ranked trees); leaves have time 0
-**struct Tree** (tree.h)
+**struct Tree**
 Node* node_array | array containing 2 * num_leaves - 1 nodes;<br> first num_leaves nodes are leaves, last num_leaves - 1 nodes are internal nodes
 long num_leaves | number of leaves
-**struct Tree_Array** (tree.h)
+**struct Tree_Array**
 Tree* trees | array of trees
 long num_trees | number of trees
-**struct Path** (rnni.h)
+**struct Path**
 long** moves | encoding RNNI moves in a matrix where each moves[i] is one move; <br> moves[i][0]: rank of lower node of interval on which move is performed <br> moves[i][1]: 0 -> rank moves, 1 -> NNI move where children[0] moves up, 2-> NNI move where children[1] moves up
 long length | number of moves
 
 ## Most important C functions
 
-This is a list of the (probably) most important functions in C code
+This is a list of the (probably) most important functions in C code.
 
 Function | Return value
 --- | ---
