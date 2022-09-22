@@ -1,10 +1,11 @@
 # Computing nearest neighbour interchange distances between ranked phylogenetic trees - Code Repository
 
-This repository contains the code for computing the Ranked Nearest Neighbour Interchange (RNNI) distance using the algorithm FINDPATH from the paper [Computing nearest neighbour interchange distances between ranked phylogenetic trees](https://doi.org/10.1007/s00285-021-01567-5) by Lena Collienne and Alex Gavryushki.
+This repository contains the code for computing the Ranked Nearest Neighbour Interchange (RNNI) distance using the algorithm FindPath from the paper [Computing nearest neighbour interchange distances between ranked phylogenetic trees](https://doi.org/10.1007/s00285-021-01567-5) by Lena Collienne and Alex Gavryushkin.
 
 An R package for computing the RNNI distance can be found [here](https://github.com/bioDS/rrnni).
 
-The implementation here is written in C, wrapped in Python.
+Rooted trees with branch lengths (given in newick format) can be read through a Python interface and converted to ranked trees.
+Then distances and shortest paths between those ranked trees in the RNNI space can be computed.
 
 
 ## Compile
