@@ -31,10 +31,6 @@ class TREE_ARRAY(Structure):
         self.num_trees = num_trees
 
 
-unlabelled_rnni_neighbourhood = lib.unlabelled_rnni_neighbourhood
-unlabelled_rnni_neighbourhood.argtypes = [POINTER(TREE)]
-unlabelled_rnni_neighbourhood.restype = TREE_ARRAY
-
 free_tree = lib.free_tree
 free_tree.argtypes = [POINTER(TREE)]
 
@@ -128,3 +124,7 @@ first_iteration_fp.restype = c_int
 sos = lib.sos
 sos.argtypes = [POINTER(TREE_ARRAY), POINTER(TREE)]
 sos.restype = c_long
+
+get_empty_node = lib.get_empty_node
+get_empty_node.argtypes = []
+get_empty_node.restype = NODE
