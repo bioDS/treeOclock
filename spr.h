@@ -1,7 +1,6 @@
 #ifndef SPR_H_
 #define SPR_H_
 
-#include "queue.h"
 #include "rnni.h"
 
 // SPR move on ranked tree: prune subtree rooted in the child of the node r with
