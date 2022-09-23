@@ -16,13 +16,15 @@ def test_findpath():
     fp = findpath(tree1, tree2)
     if tree_to_cluster_string(fp.trees[0]) != tree_to_cluster_string(tree1):
         return False
-    if tree_to_cluster_string(fp.trees[1]) != "[{3,4}:1,{1,2}:2,{1,2,3,4}:3,{1,2,3,4,5}:4]":
+    if tree_to_cluster_string(
+            fp.trees[1]) != "[{3,4}:1,{1,2}:2,{1,2,3,4}:3,{1,2,3,4,5}:4]":
         return False
-    if tree_to_cluster_string(fp.trees[2]) != "[{3,4}:1,{1,2}:2,{1,2,5}:3,{1,2,3,4,5}:4]":
+    if tree_to_cluster_string(
+            fp.trees[2]) != "[{3,4}:1,{1,2}:2,{1,2,5}:3,{1,2,3,4,5}:4]":
         return False
     if tree_to_cluster_string(fp.trees[3]) != tree_to_cluster_string(tree2):
-        print(tree_to_cluster_string(
-            fp.trees[3]), tree_to_cluster_string(tree2))
+        print(tree_to_cluster_string(fp.trees[3]),
+              tree_to_cluster_string(tree2))
         print("here")
         return False
     return True
