@@ -89,9 +89,9 @@ rnni_distance = lib.rnni_distance
 rnni_distance.argtypes = [POINTER(TREE), POINTER(TREE)]
 rnni_distance.restype = c_long
 
-findpath_path = lib.findpath
-findpath_path.argtypes = [POINTER(TREE), POINTER(TREE)]
-findpath_path.restype = TREE_ARRAY
+findpath = lib.findpath
+findpath.argtypes = [POINTER(TREE), POINTER(TREE)]
+findpath.restype = TREE_ARRAY
 
 random_walk_distance = lib.random_walk_distance
 random_walk_distance.argtypes = [POINTER(TREE), c_long]
