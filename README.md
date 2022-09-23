@@ -41,17 +41,27 @@ tree2 = read_newick("(((3:1,4:1):1,2:2):1,1:3);")
 
 print(rnni_distance(tree1, tree2))
 
-path = findpath_path(tree1, tree2)
+path = findpath(tree1, tree2)
 for i in range(0, path.num_trees):
     print(tree_to_cluster_string(path.trees[i]))
 ```
+
+### Cluster Representation
+
+A cluster of a tree is a set of leaves descending from an internal node.
+A ranked tree can be represented as a list of all its clusters, ordered according to ranks.
+When using `tree_to_cluster_string`, the leaf labels in the returned cluster representation are integers from 1 to n.
+These integers are assigned as leaf labels according to the lexicographic order of leaf labels in the input newick string.
+Additionally, ranks of internal nodes are added to each cluster.
+
+For example, `(((A:1,B:1):2,(C:2,D:2):1):1,E:4);` in cluster representation is `[{1,2}:1,{3,4}:2,{1,2,3,4}:3,{1,2,3,4,5}:4]`.
 
 ## Data Structures
 
 We use our own data structure in C code.
 The following is a summary of all structures defined in *tree.h* and *rnni.h*.
 
-Struct | Members
+Struct Members | Description
 --- | ---
 **struct Node**
 long parent | parent (-1 if node root)
