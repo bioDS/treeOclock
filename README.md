@@ -65,13 +65,13 @@ The following is a summary of all structures defined in *tree.h* and *rnni.h*.
 | --- | --- | --- |
 | **struct Node** | `long parent` | parent (-1 if node root)
 | | `long children[2]` | two children (-1 if node leaf)
-| | long time | time of this node (=rank for ranked trees); leaves have time 0
-**struct Tree** | Node* node_array | array containing 2 * num_leaves - 1 nodes;<br> first num_leaves nodes are leaves, last num_leaves - 1 nodes are internal nodes
-| | long num_leaves | number of leaves
-**struct Tree_Array** | Tree* trees | array of trees
-| | long num_trees | number of trees
-**struct Path** | long** moves | encoding RNNI moves in a matrix where each moves[i] is one move; <br> moves[i][0]: rank of lower node of interval on which move is performed <br> moves[i][1]: 0 -> rank move, 1 -> NNI move where children[0] moves up, 2-> NNI move where children[1] moves up
-| | long length | number of moves
+| | `long time` | time of this node (=rank for ranked trees); leaves have time 0
+**struct Tree** | `Node* node_array` | array containing 2 * num_leaves - 1 nodes;<br> first num_leaves nodes are leaves, last num_leaves - 1 nodes are internal nodes
+| | `long num_leaves` | number of leaves
+**struct Tree_Array** | `Tree* trees` | array of trees
+| | `long num_trees` | number of trees
+**struct Path** | `long** moves` | encoding RNNI moves in a matrix where each `moves[i]` is one move; <br> `moves[i][0]`: rank of lower node of interval on which move is performed <br> `moves[i][1]`: 0 -> rank move, 1 -> NNI move where `children[0]` moves up, 2-> NNI move where `children[1]` moves up
+| | `long length` | number of moves
 
 ## Most important C functions
 
@@ -80,7 +80,7 @@ This is a list of the (probably) most important functions in C code.
 Function | Return value
 --- | ---
 **tree.c**
-`void print_tree(Tree* tree)` | prints for every node in *tree.node_array* parent, children, and time
+`void print_tree(Tree* tree)` | prints parent, children, and time for every node in *tree.node_array*
 `int same_tree(Tree* tree1, Tree* tree2)` | returns 1 if tree1 and tree2 are isomorphic
 **rnni.c**
 `Tree_Array rnni_neighbourhood(Tree* tree)` | returns `Tree_Array` containing all RNNI neighbours of *tree*
