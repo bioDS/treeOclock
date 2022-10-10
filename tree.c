@@ -106,20 +106,20 @@ int same_tree(Tree* tree1, Tree* tree2) {
 
 // find rank (position in node_array) of most recent common ancestor of nodes
 // node1 and node2 in tree
-long mrca(Tree* input_tree, long node1, long node2) {
+long mrca(Tree* tree, long node1, long node2) {
     long rank1 = node1;
     long rank2 = node2;
     // loop through ancestors (bottom-up) of the two nodes until ancestor of
     // both is found
     while (rank1 != rank2) {
         if (rank1 < rank2) {
-            rank1 = input_tree->node_array[rank1].parent;
+            rank1 = tree->node_array[rank1].parent;
             if (rank1 == -1) {
                 printf("Cannot find mrca, reached root.");
                 return -1;
             }
         } else {
-            rank2 = input_tree->node_array[rank2].parent;
+            rank2 = tree->node_array[rank2].parent;
             if (rank2 == -1) {
                 printf("Cannot find mrca, reached root.");
                 return -1;

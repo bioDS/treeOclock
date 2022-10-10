@@ -58,6 +58,6 @@ int same_tree(Tree* tree1, Tree* tree2);
 
 // return rank of most recent common ancestor (lowest/least common ancestor) of
 // nodes node1 and node2 in input_tree
-long mrca(Tree* input_tree, long node1, long node2);
+long mrca(Tree* tree, long node1, long node2);
 
 #endif
