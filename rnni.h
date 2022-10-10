@@ -3,7 +3,7 @@
 
 #include "tree.h"
 
-/* Save sequence of RNNI moves in matrix:
+/* Path: sequence of RNNI moves in matrix:
 Each row moves[i] is one move
 moves[i][0]:
     lower rank of interval on which move is performed
