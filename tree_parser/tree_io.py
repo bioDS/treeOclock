@@ -253,18 +253,18 @@ def read_from_cluster(s):
         # list of all ints in cluster[i] -- all leaves of cluster + time
         # (last element in m)
         m = leaf_pattern.findall(clusters[i])
-        child1 = -1
-        child2 = -1
+        child_1 = -1
+        child_2 = -1
         # loop through leaves in clusters to find the two highest ancestors
         # we have already seen among all leaves in cluster -- these are the
-        # children child1 and child2 of the node at rank i
+        # children child_1 and child_2 of the node at rank i
         for k in range(0, len(m) - 1):
             leaf = m[k]
             leaf_index = int(leaf) - 1
-            if child1 == -1:
-                child1 = highest_ancestor[leaf_index]
-            elif child1 != highest_ancestor[leaf_index]:
-                child2 = highest_ancestor[leaf_index]
+            if child_1 == -1:
+                child_1 = highest_ancestor[leaf_index]
+            elif child_1 != highest_ancestor[leaf_index]:
+                child_2 = highest_ancestor[leaf_index]
             highest_ancestor[leaf_index] = i + num_leaves - 1
         # update children - parent relationship
         for k in [0, 1]:
