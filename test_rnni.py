@@ -25,7 +25,6 @@ def test_findpath():
     if tree_to_cluster_string(fp.trees[3]) != tree_to_cluster_string(tree2):
         print(tree_to_cluster_string(fp.trees[3]),
               tree_to_cluster_string(tree2))
-        print("here")
         return False
     return True
 
