@@ -143,3 +143,12 @@ mrca_differences.restype = c_long
 symmetric_cluster_diff = lib.symmetric_cluster_diff
 symmetric_cluster_diff.argtypes = [POINTER(TREE), POINTER(TREE), c_long]
 symmetric_cluster_diff.restype = c_long
+
+# from orbits.h
+
+orbit_sizes = lib.orbit_sizes
+orbit_sizes.argtypes = [POINTER(TREE), c_long]
+orbit_sizes.restype = POINTER(c_long)
+
+free_results_array = lib.free_results_array
+free_results_array.argtypes = [POINTER(c_long)]
