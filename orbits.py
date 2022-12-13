@@ -218,7 +218,7 @@ def findpath_orbits(tree, k=None):
 
 
 findpath_cache = {}
-def findpath_orbits_cached(tree):
+def findpath_orbits_cached(tree, min_rank=0, cur_rank=0, d=0):
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
 
@@ -281,7 +281,7 @@ def findpath_orbits_cached(tree):
         findpath_cache[key] = result
         return result
 
-    results = rec(0, 0, 0)
+    results = rec(min_rank, cur_rank, d)
     return [1] + results
 
 
