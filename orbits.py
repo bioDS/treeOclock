@@ -12,8 +12,9 @@ from generate import all_unlabelled_trees
 ## Helper functions
 
 def shape(tree, start_rank=1):
-    """Returns parents of nodes at and above start_rank as a tuple. Can be used for caching."""
+    """Returns parents of nodes at and above start_rank as a tuple. (Or (None,) if shape is 2-leaved) Can be used for caching."""
     n =tree.contents.num_leaves
+    if start_rank == n-1: return (None,)
     node_array = tree.contents.node_array
     return tuple(node_array[node_array[i].parent].time-start_rank+1 for i in range(start_rank+n-1, 2*n-3))
 
@@ -220,14 +221,83 @@ findpath_cache = {}
 def findpath_orbits_cached(tree):
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
-    k = (n-1)*(n-2)//2
-    results = [0] * (k+1)
 
     def rec(min_rank, cur_rank, d):
-
-        key = (shape(tree, min_rank), cur_rank - min_rank)
+        if min_rank == cur_rank:
+            key = (shape(tree, min_rank+1), 0)
+        else:
+            key = (shape(tree, min_rank), cur_rank - min_rank)
         if key in findpath_cache:
             return findpath_cache[key]
+
+        result = []
+        if cur_rank == min_rank:
+            for new_cur_rank in range(min_rank+2, n):
+                delta = rec(min_rank+1, new_cur_rank, d)
+                add_to(result, delta, 0)
+
+        else:
+            cur_index = cur_rank + n - 1
+            r = cur_index - 1
+            if nodes[r].parent == cur_index:
+                # NNI moves
+                result.append(2)
+
+                nni_move(tree, r, 0)
+
+                delta = rec(min_rank, cur_rank-1, d+1)
+                add_to(result, delta, 1)
+                if cur_rank - 1 > min_rank:
+                    delta = rec(cur_rank-1, cur_rank-1, d+1)
+                    add_to(result, delta, 1)
+
+                nni_move(tree, r, 1)
+
+                delta = rec(min_rank, cur_rank-1, d+1)
+                add_to(result, delta, 1)
+                if cur_rank - 1 > min_rank:
+                    delta = rec(cur_rank-1, cur_rank-1, d+1)
+                    add_to(result, delta, 1)
+
+                # Reset
+                nni_move(tree, r, 0)
+                nodes[r].children[0], nodes[r].children[1] = nodes[r].children[1], nodes[r].children[0]
+                
+            else:
+                # Rank Move
+                result.append(1)
+
+                rank_move(tree, r)
+
+                delta = rec(min_rank, cur_rank-1, d+1)
+                add_to(result, delta, 1)
+                if cur_rank - 1 > min_rank:
+                    delta = rec(cur_rank-1, cur_rank-1, d+1)
+                    add_to(result, delta, 1)
+                
+                # Reset
+                rank_move(tree, r)
+        
+        findpath_cache[key] = result
+        return result
+
+    results = rec(0, 0, 0)
+    return [1] + results
+
+
+
+findpath_cache_alt = {}
+def findpath_orbits_cached_alt(tree):
+    n = tree.contents.num_leaves
+    nodes = tree.contents.node_array
+
+    def rec(min_rank, cur_rank, d):
+        if min_rank == cur_rank:
+            key = (shape(tree, min_rank+1), 0)
+        else:
+            key = (shape(tree, min_rank), cur_rank - min_rank)
+        if key in findpath_cache_alt:
+            return findpath_cache_alt[key]
 
         if cur_rank == min_rank:
             result = [1]
@@ -267,7 +337,7 @@ def findpath_orbits_cached(tree):
                 # Reset
                 rank_move(tree, r)
         
-        findpath_cache[key] = result
+        findpath_cache_alt[key] = result
         return result
 
     results = rec(0, 0, 0)
@@ -365,5 +435,7 @@ if __name__ == "__main__":
 
     #print_orbit_sizes(3, 7)
     #print_findpath_orbits(3, 7)
+
+    print_findpath_orbits_cached(3, 10)
 
     pass
