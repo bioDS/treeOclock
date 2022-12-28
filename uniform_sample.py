@@ -8,11 +8,30 @@ from orbits import findpath_orbits_cached, shape
 
 import random
 
+# Helper Function
+
+def max_remaining_reverse_steps(n, max_rank, cur_rank):
+    """
+    Given the current rank and maximum rank parameters of a reverse FindPath traversal,
+    returns the maximum number of moves that may remain in the traversal.
+    """
+    if cur_rank == n-1:
+        max_rank = max_rank-1
+        cur_rank = max_rank
+
+    sub = (n-2)-max_rank
+    return (
+        sub*max_rank +
+        (max_rank*(max_rank+1))//2 -
+        (cur_rank - max_rank)
+    )
+
+# Samplers
 
 def uniform_sample(tree, k):
     """
     Returns a tree uniformly sampled from the orbit at distance k from tree.
-    Only works efficiently for trees similar to catepillar trees.
+    Only works efficiently for trees similar to catepillar trees in their higher ranks.
     """
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
@@ -96,29 +115,49 @@ def uniform_sample(tree, k):
     rec(0, 0, 0)
     return sampled_tree
 
-if __name__ == "__main__":
-    n=20
-    num_samples = 25
-    k = (n-1)*(n-2)//3
-    initial_d = 2
+def generate_orbit(tree, k):
+    """
+    Returns a generator over the entire k-orbit centered at tree.
+    Runs in O(size of k-ball) time and O(k) space.
+    """
+    n = tree.contents.num_leaves
+    nodes = tree.contents.node_array
 
-    cat = list(all_unlabelled_trees(n, 1))[0]
-    center = uniform_sample(cat, initial_d)
-    free_tree(cat)
+    def rec(max_rank, cur_rank, d):
+        if d == k:
+            new_tree = get_empty_tree(n)
+            copy_tree(new_tree, tree)
+            yield new_tree
+            return
 
-    print(f"Center Tree: {print_tree_from_root(center.contents, 2*n-2)};\n{shape(center)}\n")
-    occurences = {}
-    for i in range(num_samples):
-        sampled = uniform_sample(center, k)
-        rep = print_tree_from_root(sampled.contents, 2*n-2)
-        occurences[rep] = occurences.get(rep, 0) + 1
-        print(print_tree_from_root(sampled.contents, 2*n-2))
-        free_tree(sampled)
-    
-    for rep, count in sorted(occurences.items()):
-        print(rep, count)
-    print()
-    print(f"{len(occurences)}/{num_samples} unique samples at distance {k} from {print_tree_from_root(center.contents, 2*n-2)}.")
-    print(shape(center))
+        if max_rank - 1 > 0 and max_remaining_reverse_steps(n, max_rank-1, max_rank-1) >= k-d:
+            yield from rec(max_rank-1, max_rank-1, d)
 
-    free_tree(center)
+        
+        if cur_rank < n-1 and max_remaining_reverse_steps(n, max_rank, cur_rank+1) >= k-(d+1):
+            # Node can be moved up
+            r = cur_rank + n - 1
+
+            if nodes[r].parent==r+1:
+                # NNI Moves
+
+                nni_move(tree, r, 0)
+                yield from rec(max_rank, cur_rank+1, d+1)
+                
+                nni_move(tree, r, 1)
+                yield from rec(max_rank, cur_rank+1, d+1)
+                
+                # Reset
+                nni_move(tree, r, 0)
+                nodes[r].children[0], nodes[r].children[1] = nodes[r].children[1], nodes[r].children[0]
+
+            else:
+                # Rank Move
+
+                rank_move(tree, r)
+                yield from rec(max_rank, cur_rank+1, d+1)
+                
+                # Reset
+                rank_move(tree, r)
+
+    yield from rec(n-2, n-2, 0)

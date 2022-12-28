@@ -129,3 +129,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .DS_Store
+
+# VS Code
+.vscode/*
+
+# Output
+output/*
+
+# Executables
+*.out
