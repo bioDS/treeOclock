@@ -16,22 +16,22 @@ def num_unlabelled_trees(n):
     return int(sum)
 
 # Function modified from Summarising-Ranked-Phylogenetic-Trees, nwk_parser.py
-def print_tree_from_root(tree, index):
-    """Recursive Function to get the nwk representation of a node based tree, modified for use with C Tree struct"""
+def print_tree_from_root(tree, index=None):
+    """Recursive Function to get the nwk representation of a node based tree, modified for use with C Tree struct, guarantees unique representation."""
     node_array = tree.node_array
     n = tree.num_leaves
+    if index is None: index = 2*n-2
     node = node_array[index]
     left = node.children[0]
     right = node.children[1]
+    if left > right:
+        left,right = right,left
     if left < n and right < n:
         # Merge two leafs
         return f'({left+1}:{node.time},{right+1}:{node.time})'
     elif left < n and right >= n:
         # Merge left leaf and right subtree
         return f'({left+1}:{node.time},{print_tree_from_root(tree, right)}:{node.time - node_array[right].time})'
-    elif left >= n and right < n:
-        # Merge left subtree and right leaf
-        return f'({print_tree_from_root(tree, left)}:{node.time - node_array[left].time},{right+1}:{node.time})'
     else:
         # Merge two subtrees
         return f'({print_tree_from_root(tree, left)}:{node.time - node_array[left].time},{print_tree_from_root(tree, right)}:{node.time - node_array[right].time})'

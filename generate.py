@@ -2,6 +2,8 @@ __author__ = "Joseph Grace"
 
 from tree_functions import *
 
+from random import choice, choices
+
 def all_topologies(n):
     """
     Returns a generator that iterates over all tree topologies of n leaves.
@@ -94,3 +96,35 @@ def all_unlabelled_trees(n, limit=None):
         i += 1
         if limit is not None and i>=limit:
             break
+
+
+def random_topology(n):
+    shape = [-1] * (2*n-1)
+    
+    counts = [0] * (2*n-1)
+    available = set([2*n-2])
+    for index in range(2*n-3, -1, -1):
+        #print(shape, available)
+        parent = choice(list(available))
+        if counts[parent] == 1:
+            available.remove(parent)
+        counts[parent]+=1
+        shape[index] = parent
+        if index >=n:
+            available.add(index)
+    return tuple(shape)
+
+def random_tree(n):
+    tree = get_empty_tree(n)
+    parents = random_topology(n)
+    #print(parents)
+    set_child = [0]*(2*n-1)
+    for j in range(2*n-1):
+        if j >= n:
+            tree.contents.node_array[j].time = j-n+1
+        parent = parents[j]
+        if parent < 0 or parent >= 2*n-1: continue
+        tree.contents.node_array[j].parent = parent
+        tree.contents.node_array[parent].children[set_child[parent]] = j
+        set_child[parent] += 1
+    return tree

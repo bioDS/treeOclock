@@ -4,53 +4,15 @@ from tree_functions import *
 from tree_parser.tree_io import *
 
 from external_functions import *
+from helper_functions import *
 
 from generate import all_unlabelled_trees
 
 
-
-## Helper functions
-
-def shape(tree, start_rank=1):
-    """Returns parents of nodes at and above start_rank as a tuple. (Or (None,) if shape is 2-leaved) Can be used for caching."""
-    n =tree.contents.num_leaves
-    if start_rank == n-1: return (None,)
-    node_array = tree.contents.node_array
-    return tuple(node_array[node_array[i].parent].time-start_rank+1 for i in range(start_rank+n-1, 2*n-3))
-
-
-
-def index_of_rank(tree_p, r):
-    """Returns index of node of rank r in tree_p.contents.node_array."""
-    if not 1 <= r <= tree_p.contents.num_leaves - 1:
-        raise ValueError()
-    
-    index = tree_p.contents.num_leaves+r-1
-    try:
-        assert r==tree_p.contents.node_array[index].time
-    except AssertionError:
-        print_tree(tree_p.contents)
-        raise
-    return index
-
-
-
-def add_to(array, added, offset):
-    """
-    Increments elements in array with elements in added, at the specified (non-negative) offset.
-    Adds to array as needed.
-    """
-    for i in range(len(added)):
-        while i+offset>=len(array):
-            array.append(0)
-        array[i+offset] += added[i]
-
-
-
 ## Orbit sizes
 
-cache_1 = {}
-def orbit_sizes_cached_1(tree):
+reverse_findpath_orbit_sizes_cached_1_cache = {}
+def reverse_findpath_orbit_sizes_cached_1(tree):
     n=tree.contents.num_leaves
     node_array = tree.contents.node_array
 
@@ -60,8 +22,8 @@ def orbit_sizes_cached_1(tree):
 
     def rec(max_rank, d):
         key = (shape(tree), max_rank, rank_indices[max_rank]-n+1)
-        if key in cache_1:
-            return cache_1[key].copy()
+        if key in reverse_findpath_orbit_sizes_cached_1_cache:
+            return reverse_findpath_orbit_sizes_cached_1_cache[key].copy()
 
         result = [1]
         if d >= k: return result
@@ -102,15 +64,15 @@ def orbit_sizes_cached_1(tree):
                 # Reset
                 rank_indices[rank]=r
 
-        cache_1[key] = result
+        reverse_findpath_orbit_sizes_cached_1_cache[key] = result
         return result
     
     return rec(n-2, 0)
 
 
 
-cache_2 = {}
-def orbit_sizes_cached_2(tree):
+reverse_findpath_orbit_sizes_cached_2_cache = {}
+def reverse_findpath_orbit_sizes_cached_2(tree):
     n=tree.contents.num_leaves
     node_array = tree.contents.node_array
 
@@ -118,8 +80,8 @@ def orbit_sizes_cached_2(tree):
     
     def rec(max_rank, cur_rank, d):
         key = (shape(tree), max_rank, cur_rank)
-        if key in cache_2:
-            return cache_2[key].copy()
+        if key in reverse_findpath_orbit_sizes_cached_2_cache:
+            return reverse_findpath_orbit_sizes_cached_2_cache[key].copy()
 
         if d >= k: return []
 
@@ -164,14 +126,14 @@ def orbit_sizes_cached_2(tree):
                 rank_move(tree, r)
         
         if result == [0]: result = []
-        cache_2[key] = result
+        reverse_findpath_orbit_sizes_cached_2_cache[key] = result
         return result
     
     return [1] + rec(n-2, n-2, 0)
 
 
 
-def findpath_orbits(tree, k=None):
+def all_destinations_findpath_orbit_sizes(tree, k=None):
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
     if k is None: k = (n-1)*(n-2)//2
@@ -217,8 +179,8 @@ def findpath_orbits(tree, k=None):
 
 
 
-findpath_cache = {}
-def findpath_orbits_cached(tree, min_rank=0, cur_rank=0, d=0):
+all_destinations_findpath_orbit_sizes_cached_cache = {}
+def all_destinations_findpath_orbit_sizes_cached(tree, min_rank=0, cur_rank=0, d=0):
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
 
@@ -227,8 +189,8 @@ def findpath_orbits_cached(tree, min_rank=0, cur_rank=0, d=0):
             key = (shape(tree, min_rank+1), 0)
         else:
             key = (shape(tree, min_rank), cur_rank - min_rank)
-        if key in findpath_cache:
-            return findpath_cache[key]
+        if key in all_destinations_findpath_orbit_sizes_cached_cache:
+            return all_destinations_findpath_orbit_sizes_cached_cache[key]
 
         result = []
         if cur_rank == min_rank:
@@ -237,6 +199,9 @@ def findpath_orbits_cached(tree, min_rank=0, cur_rank=0, d=0):
                 add_to(result, delta, 0)
 
         else:
+            # delta = rec(cur_rank, cur_rank, d)
+            # add_to(result, delta, 0)
+
             cur_index = cur_rank + n - 1
             r = cur_index - 1
             if nodes[r].parent == cur_index:
@@ -278,16 +243,16 @@ def findpath_orbits_cached(tree, min_rank=0, cur_rank=0, d=0):
                 # Reset
                 rank_move(tree, r)
         
-        findpath_cache[key] = result
+        all_destinations_findpath_orbit_sizes_cached_cache[key] = result
         return result
-
+        
     results = rec(min_rank, cur_rank, d)
     return [1] + results
 
 
 
-findpath_cache_alt = {}
-def findpath_orbits_cached_alt(tree):
+all_destinations_findpath_orbit_sizes_cached_alt_cache = {}
+def all_destinations_findpath_orbit_sizes_cached_alt(tree):
     n = tree.contents.num_leaves
     nodes = tree.contents.node_array
 
@@ -296,8 +261,8 @@ def findpath_orbits_cached_alt(tree):
             key = (shape(tree, min_rank+1), 0)
         else:
             key = (shape(tree, min_rank), cur_rank - min_rank)
-        if key in findpath_cache_alt:
-            return findpath_cache_alt[key]
+        if key in all_destinations_findpath_orbit_sizes_cached_alt_cache:
+            return all_destinations_findpath_orbit_sizes_cached_alt_cache[key]
 
         if cur_rank == min_rank:
             result = [1]
@@ -337,7 +302,7 @@ def findpath_orbits_cached_alt(tree):
                 # Reset
                 rank_move(tree, r)
         
-        findpath_cache_alt[key] = result
+        all_destinations_findpath_orbit_sizes_cached_alt_cache[key] = result
         return result
 
     results = rec(0, 0, 0)
@@ -371,7 +336,7 @@ def print_orbit_sizes(start, end):
 
 def print_orbit_sizes_cached(start, end):
     for n in range(start,end+1):
-        cache_1.clear()
+        reverse_findpath_orbit_sizes_cached_1_cache.clear()
         #cache_2.clear()
 
         all_trees = all_unlabelled_trees(n)
@@ -380,7 +345,7 @@ def print_orbit_sizes_cached(start, end):
         print()
 
         for tree in all_trees:
-            results = orbit_sizes_cached_1(tree)
+            results = reverse_findpath_orbit_sizes_cached_1(tree)
             #results = orbit_sizes_cached_2(tree)
 
             #print(results, "-" ,print_tree_from_root(tree.contents, 2*n-2)+";") # Newick representation
@@ -401,7 +366,7 @@ def print_findpath_orbits(start, end):
 
         for tree in all_trees:
             k = (n-1)*(n-2)//2
-            results = findpath_orbits(tree, k)
+            results = all_destinations_findpath_orbit_sizes(tree, k)
 
             print(results,"-",shape(tree)) # Shape tuple representation
 
@@ -419,7 +384,7 @@ def print_findpath_orbits_cached(start, end):
         print()
 
         for tree in all_trees:
-            results = findpath_orbits_cached(tree)
+            results = all_destinations_findpath_orbit_sizes_cached(tree)
 
             print(results,"-",shape(tree)) # Shape tuple representation
 
@@ -436,6 +401,10 @@ if __name__ == "__main__":
     #print_orbit_sizes(3, 7)
     #print_findpath_orbits(3, 7)
 
-    print_findpath_orbits_cached(3, 10)
+    #print_findpath_orbits_cached(3, 6)
+    n=60
+    tree = list(all_unlabelled_trees(n, 1))[0]
+    print(all_destinations_findpath_orbit_sizes_cached(tree))
+    free_tree(tree)
 
     pass
