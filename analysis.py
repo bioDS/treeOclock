@@ -2,7 +2,7 @@ from generate import *
 
 from tree_functions import *
 from orbits import all_destinations_findpath_orbit_sizes_cached, all_destinations_findpath_orbit_sizes_cached_cache
-from unlabelled import unlabelled_distance_pruned
+from unlabelled import unlabelled_distance_hybrid
 import math
 
 def all_orbit_sizes(n):
@@ -112,13 +112,13 @@ def verify_unlabelled_diameter(n):
     print("Computing Distances...", flush=True)
     for i in range(1, num_shapes):
         for j in range(i):
-            dist = unlabelled_distance_pruned(trees1[i], trees2[j], upper_bound=expected_max)
+            dist = unlabelled_distance_hybrid(trees1[i], trees2[j], upper_bound=expected_max)
             actual_max = max(actual_max, dist)
         #     print(dist, end=" ", flush=True)
         # print(flush=True)
         print(f"{i}/{num_shapes}", flush=True)
     
-    is_maximal = (unlabelled_distance_pruned(trees1[0], trees2[-1]) == actual_max)
+    is_maximal = (unlabelled_distance_hybrid(trees1[0], trees2[-1]) == actual_max)
     print("Done.", flush=True)
 
     for i in range(num_shapes):

@@ -72,6 +72,19 @@ def all_topologies(n):
 
     yield from rec(n, working, available_ranks,0,n)
 
+def new_tree_from_parents(n, parents):
+    tree = get_empty_tree(n)
+    set_child = [0]*(2*n-1)
+    for j in range(2*n-1):
+        if j >= n:
+            tree.contents.node_array[j].time = j-n+1
+        parent = parents[j]
+        if parent < 0 or parent >= 2*n-1: continue
+        tree.contents.node_array[j].parent = parent
+        tree.contents.node_array[parent].children[set_child[parent]] = j
+        set_child[parent] += 1
+    return tree
+
 def all_unlabelled_trees(n, limit=None):
     """
     Returns a generator that iterates over all unlabelled trees on n leaves.
@@ -82,17 +95,7 @@ def all_unlabelled_trees(n, limit=None):
     all_top = all_topologies(n)
     i = 0
     for parents in all_top:
-        tree = get_empty_tree(n)
-        set_child = [0]*(2*n-1)
-        for j in range(2*n-1):
-            if j >= n:
-                tree.contents.node_array[j].time = j-n+1
-            parent = parents[j]
-            if parent < 0 or parent >= 2*n-1: continue
-            tree.contents.node_array[j].parent = parent
-            tree.contents.node_array[parent].children[set_child[parent]] = j
-            set_child[parent] += 1
-        yield tree
+        yield new_tree_from_parents(n, parents)
         i += 1
         if limit is not None and i>=limit:
             break
@@ -115,16 +118,6 @@ def random_topology(n):
     return tuple(shape)
 
 def random_tree(n):
-    tree = get_empty_tree(n)
     parents = random_topology(n)
     #print(parents)
-    set_child = [0]*(2*n-1)
-    for j in range(2*n-1):
-        if j >= n:
-            tree.contents.node_array[j].time = j-n+1
-        parent = parents[j]
-        if parent < 0 or parent >= 2*n-1: continue
-        tree.contents.node_array[j].parent = parent
-        tree.contents.node_array[parent].children[set_child[parent]] = j
-        set_child[parent] += 1
-    return tree
+    return new_tree_from_parents(n, parents)
