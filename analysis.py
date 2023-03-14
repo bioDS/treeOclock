@@ -1,3 +1,5 @@
+__author__ = "Joseph Grace"
+
 from generate import *
 
 from tree_functions import *

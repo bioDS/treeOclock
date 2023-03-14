@@ -1,3 +1,5 @@
+__author__ = "Joseph Grace"
+
 from tree_functions import *
 
 def shape(tree, start_rank=1):

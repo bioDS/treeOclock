@@ -1,3 +1,5 @@
+__author__ = "Joseph Grace"
+
 from tree_functions import *
 from tree_parser.tree_io import *
 

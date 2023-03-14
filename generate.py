@@ -97,7 +97,9 @@ def new_tree_from_shape(n, shape):
         tree.contents.node_array[index].parent = parent_index
         tree.contents.node_array[parent_index].children[set_child[parent_index]] = index
         set_child[parent_index] += 1
-
+    
+    tree.contents.node_array[2*n-2].time = n-1
+    
     # Fill leaves
     index = 0
     for parent_index in range(n, 2*n-1):
