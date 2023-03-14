@@ -2,122 +2,152 @@ __author__ = "Joseph Grace"
 
 from tree_functions import *
 
-from random import choice, choices
+import random
 
-def all_topologies(n):
+def all_shapes(n):
     """
-    Returns a generator that iterates over all tree topologies of n leaves.
+    Returns a generator that iterates over all tree shapes of n leaves. (n>=2)
     These topologies are represented as a list of parent *indexes* in a node_array of all nodes from rank 1 to n-2 inclusive.
+    Ranks are 1-indexed.
+    May (?) generate shapes in increasing lexicographic order.
     """
-    def rec(n, working, available_ranks, next_leaf, next_rank):
-        if next_rank==2*n-1:
-            yield working.copy()
+    if n==2:
+        yield (None,)
+        return
+    
+    shape = [-1]*(n-3) # 0-indexed
+    available_ranks = [False] *(n-1) # 1-indexed by rank. Includes ranks 1 to n-2
+
+    def rec(n, shape, available_ranks, next_leaf, next_rank):
+        if next_rank==n-1:
+            # Fill in last node, truncating last (redundant) element.
+            for i in range(1, n-2):
+                if available_ranks[i]:
+                    shape[i-1] = next_rank
+                    continue
+            
+            yield tuple(shape)
             return
             
         available_ranks[next_rank] = True
 
-        if next_rank >= n+2:
-            for i in range(n, next_rank):
-                if not available_ranks[i]: continue
-
-                tmp1 = working[i]
-                working[i]=next_rank
-
-                available_ranks[i] = False
-
-                for j in range(i+1, next_rank):
-                    if not available_ranks[j]: continue
-                    tmp2 = working[j]
-                    working[j]=next_rank
-
-                    available_ranks[j] = False
-                    yield from rec(n, working, available_ranks, next_leaf, next_rank+1)
-
-                    # Reset
-                    working[j]=tmp2
-                    available_ranks[j] = True
-                
-                working[i]=tmp1
-                available_ranks[i] = True
         
-        if next_leaf < n:
-            for i in range(n, next_rank):
-                if not available_ranks[i]: continue
+        # Consider adding two internal nodes as children
+        for i in range(1, next_rank):
+            if not available_ranks[i]: continue
 
-                tmp = working[i]
-                working[i]=next_rank
+            shape[i-1]=next_rank
 
-                working[next_leaf]=next_rank
+            available_ranks[i] = False
 
-                available_ranks[i] = False
+            for j in range(i+1, next_rank):
+                if not available_ranks[j]: continue
+                
+                shape[j-1]=next_rank
 
-                yield from rec(n, working, available_ranks, next_leaf+1, next_rank+1)
+                available_ranks[j] = False
+                yield from rec(n, shape, available_ranks, next_leaf, next_rank+1)
 
                 # Reset
-                working[i] = tmp
+                available_ranks[j] = True
+            
+            available_ranks[i] = True
+        
+        # Consider adding a leaf and internal node as children.
+        if next_leaf <= n:
+            for i in range(1, next_rank):
+                if not available_ranks[i]: continue
+
+                shape[i-1]=next_rank
+
+                available_ranks[i] = False
+
+                yield from rec(n, shape, available_ranks, next_leaf+1, next_rank+1)
+
+                # Reset
                 available_ranks[i] = True
 
-        if next_leaf+1<n:
-            working[next_leaf]=next_rank
-            working[next_leaf+1]=next_rank
-
-            yield from rec(n, working, available_ranks, next_leaf+2, next_rank+1)
+        # Consider adding two leaves as children
+        if next_leaf <= n-1:
+            yield from rec(n, shape, available_ranks, next_leaf+2, next_rank+1)
         
         # Reset
-        available_ranks[next_rank] = False
-    
-    
-    working = [-1]*(2*n-1)
-    available_ranks = [False] *(2*n-1)
+        available_ranks[next_rank] = False 
 
-    yield from rec(n, working, available_ranks,0,n)
+    yield from rec(n, shape, available_ranks,1,1)
 
-def new_tree_from_parents(n, parents):
+def new_tree_from_shape(n, shape):
+    """ Returns a new tree with the given shape. Requires n>=2."""
+    if shape == (None,):
+        shape = ()
+    else:
+        shape += (n-1,)
+
     tree = get_empty_tree(n)
-    set_child = [0]*(2*n-1)
-    for j in range(2*n-1):
-        if j >= n:
-            tree.contents.node_array[j].time = j-n+1
-        parent = parents[j]
-        if parent < 0 or parent >= 2*n-1: continue
-        tree.contents.node_array[j].parent = parent
-        tree.contents.node_array[parent].children[set_child[parent]] = j
-        set_child[parent] += 1
+
+    set_child = [0]*(2*n-1) # 0-indexed Tree indices
+
+    # Internal nodes
+    for i in range(1, n-1):
+        index = i+n-1
+        parent_index = shape[i-1]+n-1
+        
+        tree.contents.node_array[index].time = i
+
+        tree.contents.node_array[index].parent = parent_index
+        tree.contents.node_array[parent_index].children[set_child[parent_index]] = index
+        set_child[parent_index] += 1
+
+    # Fill leaves
+    index = 0
+    for parent_index in range(n, 2*n-1):
+        while set_child[parent_index] < 2:
+            tree.contents.node_array[index].parent = parent_index
+            tree.contents.node_array[parent_index].children[set_child[parent_index]] = index
+            set_child[parent_index] += 1
+            index += 1
+
     return tree
 
-def all_unlabelled_trees(n, limit=None):
+def all_unlabelled_trees(n, limit=-1):
     """
-    Returns a generator that iterates over all unlabelled trees on n leaves.
-    If limit is given, the generator will only generate up to limit trees.
+    Returns a generator that iterates over all unlabelled trees on <n> leaves.
+    If limit is given, the generator will only generate up to <limit> trees.
     
     IMPORTANT: Trees returned by this generator need to be freed with free_tree()!
     """
-    all_top = all_topologies(n)
-    i = 0
-    for parents in all_top:
-        yield new_tree_from_parents(n, parents)
-        i += 1
-        if limit is not None and i>=limit:
-            break
+    limiter = 0
+    if limiter == limit: return
+    for shape in all_shapes(n):
+        yield new_tree_from_shape(n, shape)
+        limiter += 1
+        if limiter == limit: break
 
 
-def random_topology(n):
-    shape = [-1] * (2*n-1)
+def random_shape(n):
+    """Randomly build a tree shape. (Not (?) uniform (May be uniform w.r.t labelled tree space))."""
+    if n == 2:
+        return (None,)
     
-    counts = [0] * (2*n-1)
-    available = set([2*n-2])
-    for index in range(2*n-3, -1, -1):
-        #print(shape, available)
-        parent = choice(list(available))
-        if counts[parent] == 1:
-            available.remove(parent)
-        counts[parent]+=1
-        shape[index] = parent
-        if index >=n:
-            available.add(index)
-    return tuple(shape)
+    shape = [-1] * (n-2) # 0-indexed.
+    # rank_choices = {0}
+    # leaf_count = 0
+
+    rank_choices = range(0, n)
+    rank_weights = [n] + [0]*(n-1)
+
+    for parent in range(1, n):
+        for j in range(2):
+            child = random.choices(rank_choices, k=1, weights = rank_weights)[0]
+            if child > 0:
+                shape[child-1] = parent
+            rank_weights[child] -= 1
+
+        rank_weights[parent] = 1
+        
+    return tuple(shape[:-1])
 
 def random_tree(n):
-    parents = random_topology(n)
-    #print(parents)
-    return new_tree_from_parents(n, parents)
+    """Returns tree built from random_shape (Not (?) uniform (May be uniform w.r.t labelled tree space))"""
+    parents = random_shape(n)
+    return new_tree_from_shape(n, parents)

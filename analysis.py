@@ -33,10 +33,7 @@ def max_orbit_size(n, orbit_sizes_list):
                 max_indices.append(i)
                 max_pos.append(j)
     
-    def top_to_shape(top):
-        return tuple(top[i]-n+1 for i in range(n, 2*n-3))
-    
-    shapes = [top_to_shape(top) for top in all_topologies(n)]
+    shapes = list(all_shapes(n))
     max_tops = [shapes[i] for i in max_indices]
 
     return max_orbit, max_tops, max_pos
