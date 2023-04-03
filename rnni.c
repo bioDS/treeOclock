@@ -267,6 +267,7 @@ int decrease_mrca(Tree* tree, long node1, long node2) {
 // 1 -> nni where children[0] moves up (becomes child of node at rank
 // path[i][0]+1) 2 -> nni where children[1] moves up (becomes child of node at
 // rank path[i][0]+1)
+// Only works for RNNI, not DCT!
 Path findpath_moves(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
@@ -308,8 +309,7 @@ Path findpath_moves(Tree* start_tree, Tree* dest_tree) {
 }
 
 // FINDPATH without saving the path -- returns only the distance
-// This implementation works for discrete time trees, therefore does some length
-// moves, too
+// This implementation works for discrete coalesent trees DCT
 long rnni_distance(Tree* start_tree, Tree* dest_tree) {
     long num_leaves = start_tree->num_leaves;
     long num_nodes = 2 * num_leaves - 1;
@@ -366,6 +366,7 @@ long rnni_distance(Tree* start_tree, Tree* dest_tree) {
                           dest_tree->node_array[i].children[1]);
             current_mrca_rank--;
             current_mrca = &current_tree->node_array[current_mrca_rank];
+            node_below_current_mrca = &current_tree->node_array[current_mrca_rank - 1];
             path_length++;
         }
     }
