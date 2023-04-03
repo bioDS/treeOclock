@@ -29,6 +29,15 @@ def test_findpath():
     return True
 
 
+def test_dct_distance():
+    tree1 = read_newick("(((A:1,B:1):1,C:2):5,(D:5,E:5):2);", factor = 1)
+    tree2 = read_newick("((B:1,E:1):5,((A:3,D:3):2,C:5):1);", factor = 1)
+    dist = rnni_distance(tree1, tree2)
+    if dist == 14:
+        return True
+    else:
+        return False
+
 if __name__ == "__main__":
     if test_rnni_distance():
         print("rnni_distance() computed correctly.")
@@ -38,3 +47,7 @@ if __name__ == "__main__":
         print("findpath() computed correctly")
     else:
         print("Error computing findpath()")
+    if test_dct_distance():
+        print("rnni_distance() for DCT trees computed correctly.")
+    else:
+        print("Error computing rnni_distance() for DCT trees")
